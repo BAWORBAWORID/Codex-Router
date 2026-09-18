@@ -23,7 +23,7 @@ Please treat everyone with respect, kindness, and professionalism. Constructive 
 1. **Fork and Clone**:
 
     ```bash
-    git clone https://github.com/BAWORBAWORID/Codex-Router-.git
+    git clone https://github.com/BAWORBAWORID/Codex-Router.git
     cd Codex-Router-
     ```
 
