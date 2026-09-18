@@ -1,14 +1,14 @@
 {
-    "name": "Zrouter",
+    "name": "CodexRouter",
     "version": "0.1.3",
     "description": "High-performance multi-provider AI Gateway and LLM proxy router built with Hono, TypeScript, and SQLite WAL",
-    "author": "ZelApi",
+    "author": "Alwayscodex",
     "license": "MIT",
     "type": "module",
     "private": true,
     "repository": {
         "type": "git",
-        "url": "https://github.com/zelapii/Zrouter.git"
+        "url": "https://github.com/BAWORBAWORID/Codex-Router.git"
     },
     "keywords": [
         "ai-gateway",
@@ -23,9 +23,9 @@
         "chatgpt",
         "router"
     ],
-    "homepage": "https://github.com/zelapii/Zrouter#readme",
+    "homepage": "https://github.com/BAWORBAWORID/Codex-Router#readme",
     "bugs": {
-        "url": "https://github.com/zelapii/Zrouter/issues"
+        "url": "https://github.com/BAWORBAWORID/Codex-Router/issues"
     },
     "workspaces": [
         "apps/*",
