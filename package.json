@@ -1,0 +1,58 @@
+{
+    "name": "Zrouter",
+    "version": "0.1.3",
+    "description": "High-performance multi-provider AI Gateway and LLM proxy router built with Hono, TypeScript, and SQLite WAL",
+    "author": "ZelApi",
+    "license": "MIT",
+    "type": "module",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/zelapii/Zrouter.git"
+    },
+    "keywords": [
+        "ai-gateway",
+        "llm-proxy",
+        "openai-compatible",
+        "anthropic-compatible",
+        "hono",
+        "sqlite",
+        "antigravity",
+        "gemini",
+        "claude",
+        "chatgpt",
+        "router"
+    ],
+    "homepage": "https://github.com/zelapii/Zrouter#readme",
+    "bugs": {
+        "url": "https://github.com/zelapii/Zrouter/issues"
+    },
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
+        "dev:api": "npm run dev -w apps/api",
+        "dev:web": "npm run dev -w apps/web",
+        "start": "npm run start -w apps/api",
+        "build": "npm run build -w packages/types && npm run build -w packages/pricing && npm run build -w packages/constants && npm run build -w packages/translator && npm run build -w packages/db && npm run build -w packages/executors && npm run build -w packages/providers && npm run build -w apps/web && npm run build -w apps/api",
+        "build:api": "npm run build -w apps/api",
+        "build:web": "npm run build -w apps/web",
+        "clean": "rm -rf apps/*/dist packages/*/dist",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "dependencies": {
+        "@xyflow/system": "^0.0.80"
+    },
+    "devDependencies": {
+        "concurrently": "^9.1.2",
+        "csstype": "^3.1.0",
+        "prettier": "^3.5.0",
+        "typescript": "^5.8.3"
+    }
+}

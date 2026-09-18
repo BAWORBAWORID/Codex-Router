@@ -1,0 +1,41 @@
+{
+    "name": "api",
+    "version": "0.1.3",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/zelapii/Zrouter.git",
+        "directory": "apps/api"
+    },
+    "homepage": "https://github.com/zelapii/Zrouter#readme",
+    "bugs": {
+        "url": "https://github.com/zelapii/Zrouter/issues"
+    },
+    "license": "MIT",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsup",
+        "clean": "rm -rf dist",
+        "start": "node dist/index.js",
+        "test": "tsx --test --test-concurrency=1 tests/**/*.test.ts"
+    },
+    "dependencies": {
+        "@hono/node-server": "^2.1.0",
+        "@hono/zod-validator": "^0.4.3",
+        "@srouter/constants": "*",
+        "@srouter/db": "*",
+        "@srouter/executors": "*",
+        "@srouter/pricing": "*",
+        "@srouter/providers": "*",
+        "@srouter/translator": "*",
+        "@srouter/types": "*",
+        "hono": "^4.13.1",
+        "zod": "^3.24.2"
+    },
+    "devDependencies": {
+        "@types/node": "^26.1.1",
+        "tsup": "^8.5.1",
+        "tsx": "^4.23.0",
+        "typescript": "^5.8.3"
+    }
+}
