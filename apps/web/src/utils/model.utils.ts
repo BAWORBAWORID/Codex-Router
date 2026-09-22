@@ -1,7 +1,7 @@
 import type { ModelObject } from "@srouter/types";
 
 export function providerFor(model: ModelObject): string {
-    return model.owned_by ?? model.id.split("/")[0] ?? "zelai";
+    return model.owned_by ?? model.id.split("/")[0] ?? "ZyvorAI";
 }
 
 export function getProviderBadgeColor(provider: string): string {

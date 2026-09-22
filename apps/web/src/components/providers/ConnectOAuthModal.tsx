@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Copy, Check, X, Key, Globe, ExternalLink, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, Copy, Check, X, Key, Globe, ExternalLink } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { AuthPollStatus, type ProviderConfig, type ProviderDefinition } from "@srouter/types";
@@ -18,8 +18,6 @@ interface OAuthLoginResponse {
     redirectUri: string;
 }
 
-type OAuthFlowStatus = "idle" | "loading" | "waiting_popup" | "callback_received" | "success" | "cancelled";
-
 export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuthModalProps) {
     const queryClient = useQueryClient();
     const [copied, setCopied] = useState(false);
@@ -30,9 +28,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
     const [authUrl, setAuthUrl] = useState("");
     const [oauthState, setOauthState] = useState("");
     const [isLoadingUrl, setIsLoadingUrl] = useState(false);
-    const [flowStatus, setFlowStatus] = useState<OAuthFlowStatus>("idle");
     const popupRef = useRef<Window | null>(null);
-    const flowStartedRef = useRef(false);
 
     const baseId = provider?.id.split("_")[0]?.split("-")[0] ?? provider?.id ?? "";
     const authProviderId = provider?.id === "codebuddy-cn" ? "codebuddy-cn" : baseId;
@@ -48,19 +44,14 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
             setError("");
             setCallbackUrlInput("");
             setPatInput("");
-            setFlowStatus("idle");
-            flowStartedRef.current = false;
             if (popupRef.current && !popupRef.current.closed) {
                 popupRef.current.close();
             }
             return;
         }
 
-        // Reset state on new connect attempt
         setIsLoadingUrl(true);
         setError("");
-        setFlowStatus("loading");
-        flowStartedRef.current = true;
 
         const providerEndpoint =
             baseId === "antigravity"
@@ -78,12 +69,10 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                 setAuthUrl(res.authorizeUrl);
                 setOauthState(res.state);
                 setIsLoadingUrl(false);
-                setFlowStatus("waiting_popup");
             })
             .catch((err: Error) => {
                 setIsLoadingUrl(false);
                 setError(err.message || "Failed to initiate OAuth login session");
-                setFlowStatus("idle");
             });
     }, [open, provider, baseId, authProviderId]);
 
@@ -96,17 +85,6 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                 "width=600,height=700,status=yes,scrollbars=yes"
             );
             popupRef.current = popup;
-            
-            // Monitor popup close to detect user cancellation
-            const checkClosed = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkClosed);
-                    if (flowStatus === "waiting_popup") {
-                        setFlowStatus("cancelled");
-                        setError("");
-                    }
-                }
-            }, 500);
         } catch {
             // Popup blocked
         }
@@ -131,7 +109,6 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                 onOpenChange(false);
                 setCallbackUrlInput("");
                 setError("");
-                setFlowStatus("success");
             }
         };
 
@@ -192,11 +169,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
             onOpenChange(false);
             setCallbackUrlInput("");
             setError("");
-            setFlowStatus("success");
         },
         onError: (err: Error) => {
             setError(err.message || "Failed to process callback URL");
-            setFlowStatus("callback_received");
         }
     });
 
@@ -237,26 +212,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
             return;
         }
 
-        // Check for OAuth error in callback URL (e.g., error=access_denied)
-        try {
-            const url = new URL(input);
-            const oauthError = url.searchParams.get("error");
-            if (oauthError) {
-                if (oauthError === "access_denied") {
-                    setError("OAuth authorization was cancelled.");
-                    setFlowStatus("cancelled");
-                } else {
-                    setError(`OAuth error: ${oauthError}`);
-                    setFlowStatus("callback_received");
-                }
-                return;
-            }
-        } catch {
-            // Invalid URL, let the backend handle it
-        }
-
         setError("");
-        setFlowStatus("callback_received");
         callbackMutation.mutate({ callback_url: input });
     };
 
@@ -333,64 +289,29 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                     </div>
                 )}
 
-                {error && flowStatus === "callback_received" && (
+                {error && (
                     <div className="rounded border border-destructive/40 bg-destructive/10 p-2.5 text-xs font-mono text-destructive">
                         {error}
                     </div>
                 )}
 
-                {error && flowStatus === "cancelled" && (
-                    <div className="rounded border border-amber-500/40 bg-amber-500/10 p-2.5 text-xs font-mono text-amber-600 dark:text-amber-400">
-                        {error}
-                    </div>
-                )}
-
-                {flowStatus === "success" && (
-                    <div className="rounded border border-emerald-500/40 bg-emerald-500/10 p-2.5 text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                        <CheckCircle className="size-3.5" />
-                        <span>Successfully connected! Closing...</span>
-                    </div>
-                )}
-
                 {activeTab === "oauth" ? (
                     <>
-                        {/* Status Banner */}
-                        {flowStatus === "loading" && (
-                            <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-secondary/30 p-3 text-xs font-mono text-foreground">
-                                <Loader2 className="size-4 text-orange-500 animate-spin shrink-0" />
-                                <span>Generating authorization session…</span>
-                            </div>
-                        )}
+                        {/* Waiting State Banner */}
+                        <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-secondary/30 p-3 text-xs font-mono text-foreground">
+                            <Loader2 className="size-4 text-orange-500 animate-spin shrink-0" />
+                            <span>
+                                {isLoadingUrl
+                                    ? "Generating authorization session…"
+                                    : isQoder
+                                      ? "Waiting for Qoder browser authorization…"
+                                      : isCodeBuddy
+                                        ? "Waiting for CodeBuddy browser authorization…"
+                                        : "Waiting for popup authorization…"}
+                            </span>
+                        </div>
 
-                        {flowStatus === "waiting_popup" && (
-                            <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-secondary/30 p-3 text-xs font-mono text-foreground">
-                                <Loader2 className="size-4 text-orange-500 animate-spin shrink-0" />
-                                <span>
-                                    {isQoder
-                                        ? "Waiting for Qoder browser authorization…"
-                                        : isCodeBuddy
-                                          ? "Waiting for CodeBuddy browser authorization…"
-                                          : "Waiting for popup authorization…"}
-                                </span>
-                            </div>
-                        )}
-
-                        {flowStatus === "cancelled" && (
-                            <div className="flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs font-mono text-amber-600 dark:text-amber-400">
-                                <AlertCircle className="size-4 shrink-0" />
-                                <span>Authorization cancelled. You can try again.</span>
-                            </div>
-                        )}
-
-                        {flowStatus === "callback_received" && !error && (
-                            <div className="flex items-center gap-3 rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs font-mono text-emerald-600 dark:text-emerald-400">
-                                <CheckCircle className="size-3.5 shrink-0" />
-                                <span>Processing callback…</span>
-                            </div>
-                        )}
-
-                        {(flowStatus === "waiting_popup" || flowStatus === "cancelled" || flowStatus === "idle") && (
-                            <form onSubmit={handleConnect} className="space-y-4 text-xs font-mono">
+                        <form onSubmit={handleConnect} className="space-y-4 text-xs font-mono">
                             {/* Step 1 */}
                             <div className="space-y-1.5">
                                 <label className="font-semibold text-foreground block font-sans text-xs">
@@ -463,7 +384,6 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                 </>
                             )}
                         </form>
-                    )}
                     </>
                 ) : (
                     /* PAT Tab */

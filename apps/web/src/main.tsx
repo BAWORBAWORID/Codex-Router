@@ -19,8 +19,7 @@ const queryClient = new QueryClient({
 
 const router = createRouter({
     routeTree,
-    context: { queryClient },
-    trailingSlash: false
+    context: { queryClient }
 });
 
 declare module "@tanstack/react-router" {
@@ -36,13 +35,8 @@ createRoot(rootElement).render(
         <ThemeProvider>
             <QueryClientProvider client={queryClient}>
                 <RouterProvider router={router} />
+                <Toaster position="bottom-right" closeButton />
             </QueryClientProvider>
         </ThemeProvider>
     </StrictMode>
-);
-
-createRoot(document.body).render(
-    <ThemeProvider>
-        <Toaster position="bottom-right" closeButton />
-    </ThemeProvider>
 );

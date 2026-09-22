@@ -1,12 +1,12 @@
 ---
-name: codex-cli
+name: srouter-cli
 description: |
-    Comprehensive development skill for the Codex CLI (@codex/cli / apps/cli). Use whenever working on, modifying, debugging, or reviewing: Commander.js command orchestration, codex CLI commands (setup, init, link, unlink, status, doctor, sync, env, run, migrate), adapter integrations (Claude Code ~/.claude.json, OpenCode ~/.opencode.json), backup/restore snapshotting (~/.codex/backups/), shell environment variable exports (bash, zsh, fish, powershell), interactive terminal prompts (@clack/prompts), or dry-run safety modes.
+    Comprehensive development skill for the SRouter CLI (@srouter/cli / apps/cli). Use whenever working on, modifying, debugging, or reviewing: Commander.js command orchestration, srouter CLI commands (setup, init, link, unlink, status, doctor, sync, env, run, migrate), adapter integrations (Claude Code ~/.claude.json, OpenCode ~/.opencode.json), backup/restore snapshotting (~/.srouter/backups/), shell environment variable exports (bash, zsh, fish, powershell), interactive terminal prompts (@clack/prompts), or dry-run safety modes.
 ---
 
-# ⚡ Codex — CLI Skill
+# ⚡ SRouter — CLI Skill
 
-Development guide for `apps/cli` (`@codex/cli`).
+Development guide for `apps/cli` (`@srouter/cli`).
 
 ## When To Read References
 
@@ -49,7 +49,7 @@ apps/cli/
 │   ├── types/
 │   └── index.ts
 ├── tests/
-└── bin/codex.js
+└── bin/srouter.js
 ```
 
 ## Core Rules

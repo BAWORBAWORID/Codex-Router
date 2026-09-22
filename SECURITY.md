@@ -1,6 +1,6 @@
 # Security Policy
 
-The CodexAI team and community take the security of our gateway, credentials, and routing infrastructure seriously.
+The ZyvorAI team and community take the security of our gateway, credentials, and routing infrastructure seriously.
 
 ---
 
@@ -17,12 +17,12 @@ The CodexAI team and community take the security of our gateway, credentials, an
 ### 1. Local-First Credential Isolation
 
 - OAuth tokens, refresh keys, and provider secrets are stored exclusively in your local SQLite database (`srouter.db`) on your own infrastructure or device
-- CodexAI never phones home, collects telemetry, or sends your API keys to third-party tracking servers
+- ZyvorAI never phones home, collects telemetry, or sends your API keys to third-party tracking servers
 - All data remains under your control at all times
 
 ### 2. Virtual Client Keys (`sr-live-...`)
 
-- Clients and downstream applications interact with CodexAI using virtual API keys
+- Clients and downstream applications interact with ZyvorAI using virtual API keys
 - Your upstream master provider keys are completely isolated and never exposed to clients
 - Keys can be individually scoped with rate limits, token quotas, credit limits, and model allowlists
 
@@ -49,12 +49,12 @@ The CodexAI team and community take the security of our gateway, credentials, an
 
 ## Reporting a Vulnerability
 
-If you discover a potential security vulnerability or sensitive information exposure in CodexAI, please do **NOT** disclose it in a public GitHub issue.
+If you discover a potential security vulnerability or sensitive information exposure in ZyvorAI, please do **NOT** disclose it in a public GitHub issue.
 
 Please report it privately via:
 
-- **Email**: `security@codexai.dev` (or open a private GitHub Security Advisory)
-- **GitHub**: [Security Advisories](https://github.com/BAWORBAWORID/Codex-Router-/security/advisories/new)
+- **Email**: `security@ZyvorAI.dev` (or open a private GitHub Security Advisory)
+- **GitHub**: [Security Advisories](https://github.com/BAWORBAWORID/Codex-Router/security/advisories/new)
 
 ### What to include in your report
 
@@ -94,20 +94,20 @@ The following are out of scope:
 
 ## Security Best Practices
 
-When deploying CodexAI, follow these recommendations:
+When deploying ZyvorAI, follow these recommendations:
 
 ### Production Deployment
 
 1. **Enable HTTPS**: Use a reverse proxy (nginx, Caddy) or Cloudflare Tunnel
-2. **Set `CODEX_SECURE_COOKIES=true`**: Enables Secure flag on admin session cookies
+2. **Set `SROUTER_SECURE_COOKIES=true`**: Enables Secure flag on admin session cookies
 3. **Enable API key authentication**: Set `Require API Key: Required` in Settings
-4. **Restrict CORS**: Configure `CODEX_CORS_ORIGINS` to allow only trusted origins
+4. **Restrict CORS**: Configure `SROUTER_CORS_ORIGINS` to allow only trusted origins
 5. **Use strong admin passwords**: Choose a unique, complex password
 6. **Keep updated**: Apply updates promptly
 
 ### Network Configuration
 
-1. **Firewall**: Only expose ports 4000 and 1455 if needed externally
+1. **Firewall**: Only expose ports 3000 and 1455 if needed externally
 2. **VPN/SSH**: For remote access, prefer VPN or SSH tunneling over public exposure
 3. **Cloudflare Tunnel**: Use the built-in tunnel for secure remote access without opening ports
 
@@ -132,10 +132,10 @@ To check for updates:
 
 ```bash
 # Via CLI
-npx @codex/cli doctor
+npx @srouter/cli doctor
 
 # Via API
-curl http://localhost:4000/v1/settings | jq .version
+curl http://localhost:3000/v1/settings | jq .version
 ```
 
 ---
@@ -144,6 +144,6 @@ curl http://localhost:4000/v1/settings | jq .version
 
 For security-related questions or concerns:
 
-- **Security issues**: `security@codexai.dev`
-- **General questions**: [GitHub Discussions](https://github.com/BAWORBAWORID/Codex-Router-/discussions)
-- **Bug reports**: [GitHub Issues](https://github.com/BAWORBAWORID/Codex-Router-/issues)
+- **Security issues**: `security@ZyvorAI.dev`
+- **General questions**: [GitHub Discussions](https://github.com/BAWORBAWORID/Codex-Router/discussions)
+- **Bug reports**: [GitHub Issues](https://github.com/BAWORBAWORID/Codex-Router/issues)

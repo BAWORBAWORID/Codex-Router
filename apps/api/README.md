@@ -1,8 +1,8 @@
-# CodexAI API
+# SRouter API
 
-The CodexAI API is the runtime gateway that sits between clients and upstream AI providers. It exposes OpenAI-compatible and Anthropic-compatible endpoints, manages provider connections, handles API-key authentication, records telemetry, and runs background OAuth token refresh for supported providers.
+The SRouter API is the runtime gateway that sits between clients and upstream AI providers. It exposes OpenAI-compatible and Anthropic-compatible endpoints, manages provider connections, handles API-key authentication, records telemetry, and runs background OAuth token refresh for supported providers.
 
-Part of the [`CodexAI`](../../README.md) monorepo.
+Part of the [`SRouter`](../../README.md) monorepo.
 
 ## What this app does
 
@@ -12,7 +12,7 @@ Client / SDK
     │ OpenAI or Anthropic compatible HTTP
     ▼
 ┌───────────────────────────────┐
-│        CodexAI API             │
+│        SRouter API             │
 │                               │
 │ auth → validation → routing   │
 │       ↘ translation           │
@@ -43,7 +43,7 @@ pnpm install
 pnpm --filter api dev
 ```
 
-The API listens on `http://localhost:4000` by default.
+The API listens on `http://localhost:3000` by default.
 
 Useful root-level commands:
 
@@ -91,7 +91,7 @@ The app reads these gateway-level environment variables:
 
 | Variable        | Default         | Description             |
 | --------------- | --------------- | ----------------------- |
-| `PORT`          | `4000`          | HTTP server port        |
+| `PORT`          | `3000`          | HTTP server port        |
 | `OAUTH_PORT`    | `1455`          | OAuth callback listener |
 | `DATABASE_PATH` | `srouter.db`    | SQLite database path    |
 | `NODE_ENV`      | `development`   | Runtime environment     |
@@ -134,7 +134,7 @@ For a single test file during development, run the underlying `tsx --test` comma
 ## Related packages
 
 - [`apps/web`](../web/README.md) — React dashboard
-- [`apps/cli`](../cli/README.md) — Codex CLI
+- [`apps/cli`](../cli/README.md) — SRouter CLI
 - [`packages/providers`](../../packages/providers/README.md) — provider registry and OAuth state
 - [`packages/executors`](../../packages/executors/README.md) — upstream provider drivers
 - [`packages/translator`](../../packages/translator/README.md) — protocol translation

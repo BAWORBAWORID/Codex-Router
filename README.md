@@ -1,10 +1,10 @@
 <div align="center">
 
-# CodexAI Gateway
+# ZyvorAI Gateway
 
 **Local-first AI gateway with DeepSeek scraping support and multi-provider routing.**
 
-Keep a single stable endpoint while CodexAI routes requests, scrapes web APIs, refreshes OAuth tokens, enforces quotas, and monitors live telemetry.
+Keep a single stable endpoint while ZyvorAI routes requests, scrapes web APIs, refreshes OAuth tokens, enforces quotas, and monitors live telemetry.
 
 <p>
   <a href="https://github.com/BAWORBAWORID/Codex-Router/releases"><img src="https://img.shields.io/badge/version-v0.1.3-6366f1?style=flat-square" alt="Version"></a>
@@ -25,10 +25,10 @@ Keep a single stable endpoint while CodexAI routes requests, scrapes web APIs, r
 
 ```bash
 git clone https://github.com/BAWORBAWORID/Codex-Router.git
-cd Codex-Router-
-pnpm install
-pnpm build
-pnpm start
+cd Codex-Router
+npm install
+npm run build
+npm start
 ```
 
 Open **`http://localhost:4000`** — create admin password, configure providers, generate API key.
@@ -36,23 +36,23 @@ Open **`http://localhost:4000`** — create admin password, configure providers,
 ### Docker
 
 ```bash
-docker run -d --name codex-router --restart unless-stopped \
+docker run -d --name Codex-Router --restart unless-stopped \
   -p 4000:4000 -p 1455:1455 \
-  -v codex_data:/root/.srouter \
-  ghcr.io/BAWORBAWORID/codex-router:latest
+  -v codex-router_data:/root/.srouter \
+  ghcr.io/baworbaworid/codex-router:latest
 ```
 
 ---
 
 ## DeepSeek Gateway
 
-CodexAI includes a **DeepSeek scraper gateway** that accesses `chat.deepseek.com` directly — no official API key required. Just provide a bearer token from your browser session.
+ZyvorAI includes a **DeepSeek scraper gateway** that accesses `chat.deepseek.com` directly — no official API key required. Just provide a bearer token from your browser session.
 
 ### How It Works
 
 1. **Get a token** from `chat.deepseek.com` browser session (base64 bearer token)
-2. **Add the provider** in CodexAI dashboard with your token
-3. **Use the models** — CodexAI handles session creation, PoW solving, and SSE streaming
+2. **Add the provider** in ZyvorAI dashboard with your token
+3. **Use the models** — ZyvorAI handles session creation, PoW solving, and SSE streaming
 
 ### Available Models
 
@@ -66,7 +66,7 @@ CodexAI includes a **DeepSeek scraper gateway** that accesses `chat.deepseek.com
 
 ### Setup
 
-1. Open CodexAI dashboard at `http://localhost:4000`
+1. Open ZyvorAI dashboard at `http://localhost:3000`
 2. Go to **Providers** → **DeepSeek**
 3. Paste your bearer token in the API Key field
 4. Click **Verify Connection**
@@ -75,7 +75,7 @@ CodexAI includes a **DeepSeek scraper gateway** that accesses `chat.deepseek.com
 ### Usage
 
 ```bash
-curl -N http://localhost:4000/v1/chat/completions \
+curl -N http://localhost:3000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sr-live-your_key" \
   -d '{
@@ -159,13 +159,6 @@ curl -N http://localhost:4000/v1/chat/completions \
 
 ## Connect Coding Tools
 
-```bash
-# CLI setup
-npx @codex/cli setup
-npx @codex/cli link claude --model ds/deepseek-chat
-npx @codex/cli link opencode --model ds/deepseek-v4-flash
-```
-
 ### Manual Config
 
 | Tool | Setting | Value |
@@ -173,6 +166,8 @@ npx @codex/cli link opencode --model ds/deepseek-v4-flash
 | Any IDE | Base URL | `http://localhost:4000/v1` |
 | Any IDE | API Key | `sr-live-your_key` |
 | Any IDE | Model | `ds/deepseek-chat` |
+
+---
 
 ---
 
@@ -200,7 +195,7 @@ for chunk in stream:
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ baseURL: "http://localhost:4000/v1", apiKey: "sr-live-your_key" });
+const client = new Anthropic({ baseURL: "http://localhost:3000/v1", apiKey: "sr-live-your_key" });
 
 const message = await client.messages.create({
     model: "anthropic/claude-sonnet-4-20250514",
@@ -214,7 +209,7 @@ console.log(message.content[0].text);
 ### cURL
 
 ```bash
-curl -N http://localhost:4000/v1/chat/completions \
+curl -N http://localhost:3000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sr-live-your_key" \
   -d '{"model":"ds/deepseek-chat","messages":[{"role":"user","content":"Hi"}],"stream":true}'
@@ -252,17 +247,17 @@ curl -N http://localhost:4000/v1/chat/completions \
 ```yaml
 services:
   codex-router:
-    image: ghcr.io/BAWORBAWORID/codex-router:latest
+    image: ghcr.io/baworbaworid/codex-router:latest
     container_name: codex-router
     restart: unless-stopped
     ports:
       - "4000:4000"
       - "1455:1455"
     volumes:
-      - codex_data:/root/.srouter
+      - codex-router_data:/root/.srouter
 
 volumes:
-  codex_data:
+  codex-router_data:
 ```
 
 ### Environment Variables
@@ -278,10 +273,10 @@ volumes:
 ## Development
 
 ```bash
-pnpm install
-pnpm dev          # API + Dashboard with HMR
-pnpm build        # Full build
-pnpm test         # Run tests
+npm install
+npm run dev          # API + Dashboard with HMR
+npm run build        # Full build
+npm test             # Run tests
 ```
 
 ### Project Structure

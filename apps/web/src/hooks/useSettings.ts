@@ -99,7 +99,7 @@ export function useSettings() {
         downloadAnchor.setAttribute("href", dataStr);
         downloadAnchor.setAttribute(
             "download",
-            `zelai-settings-${new Date().toISOString().slice(0, 10)}.json`
+            `ZyvorAI-settings-${new Date().toISOString().slice(0, 10)}.json`
         );
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();

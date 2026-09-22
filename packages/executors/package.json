@@ -4,12 +4,12 @@
     "type": "module",
     "repository": {
         "type": "git",
-        "url": "https://github.com/zelapii/Zrouter.git",
+        "url": "https://github.com/BAWORBAWORID/Codex-Router.git",
         "directory": "packages/executors"
     },
-    "homepage": "https://github.com/zelapii/Zrouter#readme",
+    "homepage": "https://github.com/BAWORBAWORID/Codex-Router#readme",
     "bugs": {
-        "url": "https://github.com/zelapii/Zrouter/issues"
+        "url": "https://github.com/BAWORBAWORID/Codex-Router/issues"
     },
     "license": "MIT",
     "main": "dist/index.js",

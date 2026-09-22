@@ -1,6 +1,6 @@
-# Contributing to CodexAI
+# Contributing to SRouter
 
-Thank you for your interest in contributing to **CodexAI**! We welcome contributions from the community to help make CodexAI the most reliable, high-performance, multi-provider AI gateway.
+Thank you for your interest in contributing to **SRouter**! We welcome contributions from the community to help make SRouter the most reliable, high-performance, multi-provider AI gateway.
 
 ---
 
@@ -23,8 +23,8 @@ Please treat everyone with respect, kindness, and professionalism. Constructive 
 1. **Fork and Clone**:
 
     ```bash
-    git clone https://github.com/BAWORBAWORID/Codex-Router.git
-    cd Codex-Router-
+    git clone https://github.com/<your-username>/SRouter.git
+    cd SRouter
     ```
 
 2. **Install Dependencies**:
@@ -38,7 +38,7 @@ Please treat everyone with respect, kindness, and professionalism. Constructive 
     pnpm dev
     ```
     This launches:
-    - **Backend API**: `http://localhost:4000` (Hono Server & SQLite WAL)
+    - **Backend API**: `http://localhost:3000` (Hono Server & SQLite WAL)
     - **Frontend Dashboard**: `http://localhost:5173` (Vite + React 19 + TanStack Router)
     - **OAuth Listener**: `http://localhost:1455` (Automated PKCE Session Exchange)
 
@@ -64,7 +64,7 @@ pnpm exec prettier --write "**/*.{ts,tsx,json,md,css}"
 ## 📂 Project Architecture
 
 ```
-Codex-Router/
+SRouter/
 ├── apps/
 │   ├── api/             # Hono REST API server & OAuth controllers
 │   └── web/             # Modern Dashboard UI (TanStack Router, React 19)
@@ -109,4 +109,4 @@ _Example:_ `feat(quota): add live quota tracking for upstream accounts`
 
 ## 📄 License
 
-By contributing to CodexAI, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to SRouter, you agree that your contributions will be licensed under the [MIT License](LICENSE).

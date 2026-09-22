@@ -47,7 +47,7 @@ export function KeyTable({
                 </div>
                 <h3 className="text-sm font-semibold text-foreground">No API Keys</h3>
                 <p className="mt-1 max-w-sm text-xs text-muted-foreground leading-relaxed">
-                    Generate an API key to authenticate requests against CodexAI from your client
+                    Generate an API key to authenticate requests against ZyvorAI from your client
                     SDKs and applications.
                 </p>
                 <Button
@@ -213,7 +213,7 @@ export function KeyTable({
                                         </div>
                                         {usageCost > 0 && (
                                             <div className="text-[9.5px] text-muted-foreground/80 font-mono mt-0.5">
-                                                ${usageCost > 0 && usageCost < 0.01 ? usageCost.toFixed(4) : usageCost > 0 && usageCost < 0.1 ? usageCost.toFixed(3) : usageCost.toFixed(2)} spent
+                                                ${usageCost < 0.01 ? usageCost.toFixed(6) : usageCost.toFixed(2)} spent
                                             </div>
                                         )}
                                     </td>

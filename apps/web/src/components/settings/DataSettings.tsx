@@ -179,7 +179,7 @@ export function DataSettings({
                                 <span>Import Configuration</span>
                             </div>
                             <p className="text-[11px] text-muted-foreground">
-                                Restore preferences from a previously saved CodexAI settings JSON
+                                Restore preferences from a previously saved ZyvorAI settings JSON
                                 file.
                             </p>
                         </div>

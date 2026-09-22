@@ -138,7 +138,7 @@ const claude: AuthProviderHandler = {
     protocol: "anthropic",
     idPrefix: "claude",
     clientId: () => process.env.CLAUDE_OAUTH_CLIENT_ID || "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
-    defaultRedirectUri: process.env.CLAUDE_OAUTH_REDIRECT_URI ?? "http://localhost:1455/auth/claude/callback",
+    defaultRedirectUri: "http://localhost:1455/auth/claude/callback",
     oauthSuccessMessage: "Login Claude Code OAuth Berhasil!",
     tokenImportMessage: "Claude Code OAuth token registered and saved directly to SQLite database!",
     oauthClass: ClaudeOAuth,

@@ -1,8 +1,8 @@
-# CodexAI Web
+# SRouter Web
 
-`apps/web` is the CodexAI management dashboard: a React 19 single-page application for connecting providers, inspecting quotas and logs, managing virtual API keys, testing models, and configuring the gateway.
+`apps/web` is the SRouter management dashboard: a React 19 single-page application for connecting providers, inspecting quotas and logs, managing virtual API keys, testing models, and configuring the gateway.
 
-Part of the [`CodexAI`](../../README.md) monorepo.
+Part of the [`SRouter`](../../README.md) monorepo.
 
 ## What you get
 
@@ -21,7 +21,7 @@ The dashboard currently exposes these main areas:
 | `/token-saver`           | Token Saver controls and test lab       |
 | `/combo`                 | Combined tooling / workflow view        |
 
-The app uses TanStack Router for file-based routing and TanStack Query for server state. The dashboard is designed to talk to the CodexAI API rather than providers directly.
+The app uses TanStack Router for file-based routing and TanStack Query for server state. The dashboard is designed to talk to the SRouter API rather than providers directly.
 
 ## Development
 
@@ -40,11 +40,11 @@ pnpm --filter web dev
 
 Open `http://localhost:5173`.
 
-During development, Vite proxies these paths to the API at `http://localhost:4000`:
+During development, Vite proxies these paths to the API at `http://localhost:3000`:
 
 ```text
-/v1     → http://localhost:4000
-/health → http://localhost:4000
+/v1     → http://localhost:3000
+/health → http://localhost:3000
 ```
 
 For the normal full-stack workflow, use:
@@ -100,13 +100,13 @@ apps/web/
 
 The dashboard centralizes HTTP access through the app's API client and uses the API routes exposed by `apps/api`. For example, the main dashboard periodically fetches `/v1/logs/stats` to keep usage information current.
 
-The web app also depends on the shared `@codex/types` and `@codex/constants` workspace packages so client-side models and provider definitions stay aligned with the API.
+The web app also depends on the shared `@srouter/types` and `@srouter/constants` workspace packages so client-side models and provider definitions stay aligned with the API.
 
 ## UI and UX
 
 The application includes:
 
-- Light and dark themes persisted through the `codex-theme` browser setting
+- Light and dark themes persisted through the `srouter-theme` browser setting
 - Responsive dashboard layouts
 - Streaming model playgrounds
 - Provider status and configuration views
@@ -133,4 +133,4 @@ pnpm --filter web build
 
 - [`apps/api`](../api/README.md) — Hono API gateway
 - [`apps/cli`](../cli/README.md) — developer CLI for coding tools
-- [`../../README.md`](../../README.md) — CodexAI overview and deployment guide
+- [`../../README.md`](../../README.md) — SRouter overview and deployment guide

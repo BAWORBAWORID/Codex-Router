@@ -61,7 +61,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
 
     const handleCheckUpdates = () => {
         refetchVersion();
-        toast.info("Checking GitHub for the latest CodexAI tags...");
+        toast.info("Checking GitHub for the latest ZyvorAI tags...");
     };
 
     const handleCopyUpdateCommand = async () => {
@@ -158,7 +158,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                     </span>
                     <div className="font-bold text-foreground flex items-center gap-1.5">
                         <Database className="size-3.5 text-amber-500" />
-                        <span>SQLite WAL Mode (zelai.db)</span>
+                        <span>SQLite WAL Mode (ZyvorAI.db)</span>
                     </div>
                 </div>
 
@@ -191,7 +191,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                             <ArrowUpCircle className="size-4 text-amber-500 shrink-0" />
                             <div>
                                 <span className="text-xs font-bold text-foreground">
-                                    New CodexAI Version Available ({latestVersion})
+                                    New ZyvorAI Version Available ({latestVersion})
                                 </span>
                                 <p className="text-[11px] text-muted-foreground mt-0.5">
                                     A newer release tag has been published on GitHub ({GITHUB_REPO}
@@ -241,7 +241,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                             <span>Live Gateway Latency Check</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                            Measure roundtrip HTTP ping latency from browser to the CodexAI local
+                            Measure roundtrip HTTP ping latency from browser to the ZyvorAI local
                             API daemon.
                         </p>
                     </div>
@@ -304,7 +304,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                     >
                         <span className="flex items-center gap-2">
                             <Layers className="size-3.5 text-muted-foreground group-hover:text-foreground" />
-                            <span>CodexAI GitHub Repository</span>
+                            <span>ZyvorAI GitHub Repository</span>
                         </span>
                         <ExternalLink className="size-3 text-muted-foreground group-hover:text-foreground" />
                     </a>

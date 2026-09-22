@@ -1,12 +1,12 @@
 ---
-name: codex-web
+name: srouter-web
 description: |
-    Comprehensive development skill for the Codex React 19 Web Dashboard (`apps/web`). Use whenever working on, modifying, debugging, or reviewing: TanStack Router page routes (`routes/keys.tsx`, `routes/combo.tsx`, `routes/providers/`, `routes/playground.tsx`, `routes/settings.tsx`, `routes/logs.tsx`), feature-based components (`components/keys/`, `components/combo/`, `components/providers/`, `components/playground/`, `components/ui/`), TanStack Query hooks (`useKeys`, `useProvider`, `useFallbacks`, `useFavorites`), Tailwind v4 OKLCH theme styling, Base UI primitives, streaming chat/playground UX, optimistic updates & query invalidations, or `/v1` API client integrations (`lib/api.ts`).
+    Comprehensive development skill for the SRouter React 19 Web Dashboard (`apps/web`). Use whenever working on, modifying, debugging, or reviewing: TanStack Router page routes (`routes/keys.tsx`, `routes/combo.tsx`, `routes/providers/`, `routes/playground.tsx`, `routes/settings.tsx`, `routes/logs.tsx`), feature-based components (`components/keys/`, `components/combo/`, `components/providers/`, `components/playground/`, `components/ui/`), TanStack Query hooks (`useKeys`, `useProvider`, `useFallbacks`, `useFavorites`), Tailwind v4 OKLCH theme styling, Base UI primitives, streaming chat/playground UX, optimistic updates & query invalidations, or `/v1` API client integrations (`lib/api.ts`).
 ---
 
-# ⚡ Codex — Web Dashboard Skill
+# ⚡ SRouter — Web Dashboard Skill
 
-Development workflow for the Codex React dashboard (`apps/web`).
+Development workflow for the SRouter React dashboard (`apps/web`).
 
 ## When To Read References
 
@@ -55,7 +55,7 @@ The dashboard is a thin orchestration layer over the `/v1` API.
 - centralize API calls in `lib/api.ts`
 - prefer TanStack Query over manual fetch state
 - preserve `/v1` endpoint normalization
-- import versions from `@codex/constants`
+- import versions from `@srouter/constants`
 - avoid duplicated endpoint strings
 - use OKLCH theme tokens from `styles.css`
 - avoid `any`

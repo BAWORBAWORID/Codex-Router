@@ -69,7 +69,7 @@ const client = new OpenAI({
 async function main() {
   const response = await client.chat.completions.create({
     model: "antigravity/gemini-2.5-flash",
-    messages: [{ role: "user", content: "Hello CodexAI!" }],
+    messages: [{ role: "user", content: "Hello ZyvorAI!" }],
   });
 
   console.log(response.choices[0].message.content);
@@ -87,7 +87,7 @@ client = OpenAI(
 
 response = client.chat.completions.create(
     model="antigravity/gemini-2.5-flash",
-    messages=[{"role": "user", "content": "Hello CodexAI!"}]
+    messages=[{"role": "user", "content": "Hello ZyvorAI!"}]
 )
 
 print(response.choices[0].message.content)`;
@@ -176,8 +176,8 @@ print(response.choices[0].message.content)`;
                             </div>
                             <p className="text-[11px] text-muted-foreground leading-relaxed max-w-xl">
                                 {requireApiKey
-                                    ? "Gateway endpoints will reject unauthenticated requests with HTTP 401 Unauthorized unless a valid virtual CodexAI key is supplied in the Authorization header."
-                                    : "Open access mode: Anyone can query CodexAI models without an API key. Ideal for localhost development, IDE extensions, or private network deployments."}
+                                    ? "Gateway endpoints will reject unauthenticated requests with HTTP 401 Unauthorized unless a valid virtual ZyvorAI key is supplied in the Authorization header."
+                                    : "Open access mode: Anyone can query ZyvorAI models without an API key. Ideal for localhost development, IDE extensions, or private network deployments."}
                             </p>
                         </div>
 

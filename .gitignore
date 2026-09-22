@@ -41,16 +41,6 @@ Thumbs.db
 !.vscode/launch.json
 !.vscode/*.code-snippets
 
-# SRouter Local Data (provider accounts, API keys, OAuth tokens)
-.srouter/
-.backups/
-*.backup
-
-# Test & Coverage
-coverage/
-.nyc_output/
-*.lcov
-
 # TypeScript incremental build metadata
 apps/web/tsconfig.tsbuildinfo
 

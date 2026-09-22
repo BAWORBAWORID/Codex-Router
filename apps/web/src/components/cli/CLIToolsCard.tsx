@@ -149,7 +149,7 @@ function buildCodexConfig(baseUrl: string, apiKey: string, model: string) {
 model_provider = "srouter"
 
 [model_providers.srouter]
-name = "CodexAI"
+name = "ZyvorAI"
 base_url = "${baseUrl}"
 wire_api = "responses"
 http_headers = { Authorization = "Bearer ${apiKey}" }
@@ -167,7 +167,7 @@ function buildCopilotConfig(baseUrl: string, apiKey: string, model: string) {
     const baseUrlWithHash = `${baseUrl}/chat/completions#models.ai.azure.com`;
     return [
         {
-            name: "CodexAI",
+            name: "ZyvorAI",
             vendor: "azure",
             apiKey,
             models: [

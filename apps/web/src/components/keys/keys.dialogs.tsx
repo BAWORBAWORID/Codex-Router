@@ -414,7 +414,7 @@ function KeyTelemetryCard({ apiKey }: { apiKey: APIKeyZod }) {
                         Spent
                     </span>
                     <span className="text-xs font-semibold text-foreground tabular-nums">
-                        ${(apiKey.usage_cost ?? 0).toFixed(2)}
+                        ${(apiKey.usage_cost ?? 0) < 0.01 ? (apiKey.usage_cost ?? 0).toFixed(6) : (apiKey.usage_cost ?? 0).toFixed(2)}
                     </span>
                 </div>
                 <div className="px-2">

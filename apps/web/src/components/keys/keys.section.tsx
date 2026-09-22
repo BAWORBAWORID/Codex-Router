@@ -73,10 +73,10 @@ export default function KeyMetrics({
                 </div>
                 <div
                     className="mt-3 flex items-baseline gap-1.5 cursor-default"
-                    title={`Total Recorded Cost: $${totalUsageCost.toFixed(4)}`}
+                    title={`Total Recorded Cost: $${totalUsageCost.toFixed(6)}`}
                 >
                     <span className="text-2xl font-bold tracking-tight text-foreground tabular-nums">
-                        ${totalUsageCost > 0 && totalUsageCost < 0.01 ? totalUsageCost.toFixed(4) : totalUsageCost > 0 && totalUsageCost < 0.1 ? totalUsageCost.toFixed(3) : totalUsageCost.toFixed(2)}
+                        ${totalUsageCost < 0.01 ? totalUsageCost.toFixed(6) : totalUsageCost.toFixed(2)}
                     </span>
                     <span className="text-xs text-muted-foreground font-mono">USD</span>
                 </div>

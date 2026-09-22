@@ -136,7 +136,5 @@ export function calculateCostFromTokens(
  */
 export function formatCost(cost: number): string {
     if (cost === null || cost === undefined || isNaN(cost)) return "$0.00";
-    if (cost > 0 && cost < 0.01) return `$${cost.toFixed(4)}`;
-    if (cost > 0 && cost < 0.1) return `$${cost.toFixed(3)}`;
-    return `$${cost.toFixed(2)}`;
+    return cost < 0.01 ? `$${cost.toFixed(6)}` : `$${cost.toFixed(2)}`;
 }

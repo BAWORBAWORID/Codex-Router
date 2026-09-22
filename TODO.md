@@ -1,6 +1,6 @@
 # Daftar File & Komponen Form
 
-Dokumentasi file-file yang menggunakan penamaan `Form` atau menangani fungsionalitas formulir di dalam project `CodexAI` (khususnya pada `apps/web/src/components`):
+Dokumentasi file-file yang menggunakan penamaan `Form` atau menangani fungsionalitas formulir di dalam project `SRouter` (khususnya pada `apps/web/src/components`):
 
 ---
 

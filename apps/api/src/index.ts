@@ -153,7 +153,7 @@ if (hasWebDist) {
     });
 }
 
-const port = Number(process.env.PORT) || 4000;
+const port = Number(process.env.PORT) || 3000;
 
 serve(
     {
@@ -176,37 +176,14 @@ serve(
 // Secondary listener on Port 1455 for OAuth callbacks and local Anthropic proxy
 const oauthApp = new Hono();
 oauthApp.onError(errorHandler("OAuth API Route"));
-
-function OAuthCallbackWrapper(handler: ReturnType<typeof AuthController.OpenAI.Callback>) {
-    return async (c: Context) => {
-        const res = await handler(c);
-        const data = await res.json();
-        if (c.req.method === "GET") {
-            const html = `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>OAuth Callback</title></head>
-<body>
-<script>
-  window.opener?.postMessage({ type: "SROUTER_OAUTH_SUCCESS", payload: ${JSON.stringify(data)} }, "*");
-  window.close();
-</script>
-<p>Authentication complete. You can close this window.</p>
-</body>
-</html>`;
-            return c.html(html);
-        }
-        return res;
-    };
-}
-
-oauthApp.get("/auth/callback", OAuthCallbackWrapper(AuthController.OpenAI.Callback));
-oauthApp.post("/auth/callback", AuthController.OpenAI.Callback);
-oauthApp.get("/auth/antigravity/callback", OAuthCallbackWrapper(AuthController.Antigravity.Callback));
-oauthApp.post("/auth/antigravity/callback", AuthController.Antigravity.Callback);
-oauthApp.get("/auth/claude/callback", OAuthCallbackWrapper(AuthController.Claude.Callback));
-oauthApp.post("/auth/claude/callback", AuthController.Claude.Callback);
-oauthApp.get("/auth/qoder/callback", OAuthCallbackWrapper(AuthController.Qoder.Callback));
-oauthApp.post("/auth/qoder/callback", AuthController.Qoder.Callback);
+oauthApp.get("/auth/callback", (c) => AuthController.OpenAI.Callback(c));
+oauthApp.post("/auth/callback", (c) => AuthController.OpenAI.Callback(c));
+oauthApp.get("/auth/antigravity/callback", (c) => AuthController.Antigravity.Callback(c));
+oauthApp.post("/auth/antigravity/callback", (c) => AuthController.Antigravity.Callback(c));
+oauthApp.get("/auth/claude/callback", (c) => AuthController.Claude.Callback(c));
+oauthApp.post("/auth/claude/callback", (c) => AuthController.Claude.Callback(c));
+oauthApp.get("/auth/qoder/callback", (c) => AuthController.Qoder.Callback(c));
+oauthApp.post("/auth/qoder/callback", (c) => AuthController.Qoder.Callback(c));
 oauthApp.route("/v1", MessagesRouter);
 oauthApp.route("/v1", ChatRouter);
 oauthApp.route("/v1", ModelsRouter);
