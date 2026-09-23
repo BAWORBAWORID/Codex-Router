@@ -97,7 +97,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 ENV NODE_ENV=production \
     PORT=4000 \
     DATABASE_PATH=/app/data/srouter.db \
-    WEB_DIST_PATH=/root/Codex-Router/apps/web/dist
+    WEB_DIST_PATH=/app/apps/web/dist
 
 # Start the API server
 CMD ["node", "apps/api/dist/index.js"]
@@ -107,7 +107,7 @@ CMD ["node", "apps/api/dist/index.js"]
 # =============================================================================
 FROM deps AS development
 
-WORKDIR /root/Codex-Router
+WORKDIR /app
 
 # Expose both API and Web ports for development
 EXPOSE 3000 1455 4000

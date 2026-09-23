@@ -41,7 +41,12 @@ export function resolveWebDistPath(
     cwd = process.cwd(),
     configuredPath = process.env.WEB_DIST_PATH
 ): string {
-    if (configuredPath) return path.resolve(cwd, configuredPath);
+    if (configuredPath) {
+        const resolvedConfigured = path.resolve(cwd, configuredPath);
+        if (fs.existsSync(path.join(resolvedConfigured, "index.html"))) {
+            return resolvedConfigured;
+        }
+    }
 
     const candidates = dashboardDistCandidates(cwd);
     const existing = candidates.find((candidate) =>

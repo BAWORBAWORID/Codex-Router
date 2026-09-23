@@ -9,3 +9,10 @@ const expectedWebDist = path.join(repoRoot, "apps/web/dist");
 test("resolves the dashboard when the API starts from apps/api", () => {
     assert.equal(resolveWebDistPath(path.join(repoRoot, "apps/api")), expectedWebDist);
 });
+
+test("falls back to discovery when configuredPath is invalid", () => {
+    assert.equal(
+        resolveWebDistPath(path.join(repoRoot, "apps/api"), "/nonexistent/path"),
+        expectedWebDist
+    );
+});
