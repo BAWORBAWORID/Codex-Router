@@ -27,6 +27,10 @@
     "bugs": {
         "url": "https://github.com/BAWORBAWORID/Codex-Router/issues"
     },
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
     "scripts": {
         "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
         "dev:api": "npm run dev -w apps/api",
