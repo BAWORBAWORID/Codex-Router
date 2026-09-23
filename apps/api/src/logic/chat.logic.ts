@@ -4,7 +4,12 @@ import {
     logRequestDB,
     incrementAPIKeyUsageDB
 } from "@srouter/db";
-import { applyTokenSaver, estimateCostForUsage, extractUsageBreakdown } from "@srouter/translator";
+import {
+    applyTokenSaver,
+    estimateCostForUsage,
+    extractUsageBreakdown,
+    resolveAntigravityOutputCap
+} from "@srouter/translator";
 import { modelSupportsToolCalling } from "@srouter/pricing";
 import type {
     ChatCompletionChunk,
@@ -146,6 +151,12 @@ function LogCompletion(
     });
 }
 
+function withDefaultMaxTokens(body: ChatCompletionRequest): ChatCompletionRequest {
+    if (body.max_tokens || !body.model.includes("antigravity/")) return body;
+    const model = body.model.split("/")[1] ?? "";
+    return { ...body, max_tokens: resolveAntigravityOutputCap(model) };
+}
+
 export class ChatLogic {
     public static async ProcessNonStreamingCompletion(
         body: ChatCompletionRequest,
@@ -155,7 +166,13 @@ export class ChatLogic {
     ): Promise<ChatCompletionResponse> {
         const maxInputTokens = body.max_tokens ?? 4096; // Extract or default max_tokens
         const effectiveBody =
-            depth === 0 ? applyTokenSaver(body, getTokenSaverSettingsDB(), maxInputTokens).request : body;
+            depth === 0
+                ? applyTokenSaver(
+                      withDefaultMaxTokens(body),
+                      getTokenSaverSettingsDB(),
+                      maxInputTokens
+                  ).request
+                : body;
         const originalModel = effectiveBody.model;
         const candidates = ResolveCandidates(originalModel);
 
@@ -279,7 +296,13 @@ export class ChatLogic {
     ): AsyncGenerator<ChatCompletionChunk, void, void> {
         const maxInputTokens = body.max_tokens ?? 4096; // Extract or default max_tokens
         const effectiveBody =
-            depth === 0 ? applyTokenSaver(body, getTokenSaverSettingsDB(), maxInputTokens).request : body;
+            depth === 0
+                ? applyTokenSaver(
+                      withDefaultMaxTokens(body),
+                      getTokenSaverSettingsDB(),
+                      maxInputTokens
+                  ).request
+                : body;
         const originalModel = effectiveBody.model;
         const candidates = ResolveCandidates(originalModel);
 

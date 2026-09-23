@@ -50,6 +50,14 @@ export class ModelsLogic {
         return Array.from(Merged.values());
     }
 
+    private static ActiveProviderBaseIds(): Set<string> {
+        const Active = new Set<string>();
+        for (const Provider of registry.getCatalog()) {
+            Active.add(Provider.id.toLowerCase());
+        }
+        return Active;
+    }
+
     private static MergeCustomModels(
         Models: ModelObject[],
         ProviderFilter?: string
@@ -57,11 +65,15 @@ export class ModelsLogic {
         const Rows = getAllCustomModelsDB();
         if (Rows.length === 0) return Models;
 
+        const ActiveProviders = this.ActiveProviderBaseIds();
+
         const Merged = new Map<string, ModelObject>();
         for (const M of Models) {
             Merged.set(M.id.toLowerCase(), M);
         }
         for (const Row of Rows) {
+            const BaseId = providerBaseId(Row.providerId).toLowerCase();
+            if (!ActiveProviders.has(BaseId)) continue;
             const Alias = providerAlias(providerBaseId(Row.providerId));
             const Id = `${Alias}/${Row.modelId}`;
             if (ProviderFilter && !Alias.toLowerCase().startsWith(ProviderFilter.toLowerCase())) {

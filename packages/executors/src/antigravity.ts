@@ -1,5 +1,6 @@
 import {
     ANTIGRAVITY_BASE_URL,
+    ANTIGRAVITY_BROWSER_USER_AGENT,
     ANTIGRAVITY_IDE_BASE_URL,
     ANTIGRAVITY_MODELS
 } from "@srouter/constants";
@@ -75,6 +76,8 @@ export class AntigravityExecutor implements AIProvider {
     private creditsMode: "never" | "on_demand" | "always";
     private remainingCredits?: Array<{ creditType: string; creditAmount: string }>;
     private openaiFallback: OpenAIExecutor;
+    private usesBrowserUserAgent = false;
+    private projectIdResolved = false;
 
     constructor(options: AntigravityExecutorOptions = {}) {
         this.id = options.id ?? "antigravity";
@@ -114,7 +117,7 @@ export class AntigravityExecutor implements AIProvider {
     private getHeaders(extra?: Record<string, string>): Record<string, string> {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
-            "User-Agent": ANTIGRAVITY_IDE_USER_AGENT
+            "User-Agent": this.usesBrowserUserAgent ? ANTIGRAVITY_BROWSER_USER_AGENT : ANTIGRAVITY_IDE_USER_AGENT
         };
         const token = this.accessToken || this.apiKey;
         if (token) {
@@ -193,6 +196,7 @@ export class AntigravityExecutor implements AIProvider {
     ): { url: string; body: Record<string, unknown> } {
         const cleanBaseUrl = this.getAntigravityBaseUrl();
         const modelName = parseAntigravityModelName(model);
+        this.usesBrowserUserAgent = modelName === "gemini-3.8-flash";
 
         // Build contents (with tool support, prompt stripping, zero-width stripping, trailing turn stripping)
         const contents = buildAntigravityContents(req);
@@ -268,15 +272,8 @@ export class AntigravityExecutor implements AIProvider {
     }
 
     private async ensureProjectId(): Promise<string> {
-        if (
-            this.projectId &&
-            !this.projectId.includes("-core-") &&
-            !this.projectId.includes("-flow-")
-        ) {
-            return this.projectId;
-        }
         const token = this.getToken();
-        if (token && token.startsWith("ya29.")) {
+        if (token && token.startsWith("ya29.") && !this.projectIdResolved) {
             try {
                 const res = await fetch(
                     "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
@@ -294,6 +291,7 @@ export class AntigravityExecutor implements AIProvider {
                     const fetchedProject = data.cloudaicompanionProject || data.projectId;
                     if (fetchedProject) {
                         this.projectId = fetchedProject;
+                        this.projectIdResolved = true;
                         return fetchedProject;
                     }
                 }
@@ -301,6 +299,7 @@ export class AntigravityExecutor implements AIProvider {
                 // fall back to default
             }
         }
+        if (this.projectIdResolved) return this.projectId;
         return this.projectId;
     }
 

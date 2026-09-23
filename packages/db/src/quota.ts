@@ -329,10 +329,25 @@ export async function getProviderQuotaAccount(p: {
 
 export async function getQuotaSummaryDB(): Promise<QuotaResponse> {
     const DbProviders = getAllProvidersDB();
-    const ProviderAccounts: ProviderQuotaAccount[] = [];
 
+    // Build a map of providerId -> connected count from actual connections
+    const allConnections = getAllProvidersDB().filter((c) => !c.providerSpecificData?.__seed__);
+    const connectedCountByProvider: Record<string, number> = {};
+    for (const conn of getAllProvidersDB()) {
+        if (conn.enabled && !conn.providerSpecificData?.__seed__) {
+            const baseId = conn.providerId || conn.id;
+            connectedCountByProvider[baseId] = (connectedCountByProvider[baseId] || 0) + 1;
+        }
+    }
+
+    const ProviderAccounts: ProviderQuotaAccount[] = [];
     for (const p of DbProviders) {
         try {
+            // Only include providers that have active connections
+            const baseId = p.providerId || p.id;
+            const connectedCount = connectedCountByProvider[baseId] ?? 0;
+            if (connectedCount === 0) continue;
+
             const Account = await getProviderQuotaAccount(p);
             ProviderAccounts.push(Account);
         } catch {
