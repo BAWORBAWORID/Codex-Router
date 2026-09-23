@@ -30,22 +30,29 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 # Create application directories
-RUN mkdir -p /root/Codex-Router /root/.srouter/backups /app/data
+RUN mkdir -p /app /root/.srouter/backups /app/data
 
-WORKDIR /root/Codex-Router
+WORKDIR /app
 
 # =============================================================================
-# Dependencies Stage - Install all dependencies with pnpm workspaces
+# Dependencies Stage - Install all dependencies
 # =============================================================================
 FROM base AS deps
 
 # Copy package files first for better layer caching
 COPY package.json pnpm-lock.yaml ./
-COPY packages/*/package.json packages/
-COPY apps/*/package.json apps/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY packages/constants/package.json ./packages/constants/
+COPY packages/db/package.json ./packages/db/
+COPY packages/executors/package.json ./packages/executors/
+COPY packages/pricing/package.json ./packages/pricing/
+COPY packages/providers/package.json ./packages/providers/
+COPY packages/translator/package.json ./packages/translator/
+COPY packages/types/package.json ./packages/types/
 
-# Install dependencies using pnpm workspaces (frozen lockfile for reproducibility)
-RUN pnpm install --frozen-lockfile --prefer-offline
+# Install dependencies using npm (workspaces are defined in package.json)
+RUN npm install
 
 # =============================================================================
 # Builder Stage - Build all packages and applications
@@ -64,21 +71,17 @@ RUN pnpm run build
 FROM base AS production
 
 # Create non-root user for security (optional, but recommended)
-RUN groupadd -r srouter && useradd -r -g srouter -d /root/Codex-Router -s /bin/bash srouter
+RUN groupadd -r srouter && useradd -r -g srouter -d /app -s /bin/bash srouter
 
 # Copy built artifacts from builder
-COPY --from=builder /root/Codex-Router /root/Codex-Router
-
-# Copy built packages and apps
-COPY --from=builder /root/Codex-Router/packages /root/Codex-Router/packages
-COPY --from=builder /root/Codex-Router/apps /root/Codex-Router/apps
+COPY --from=builder /app /app
 
 # Create data directory for SQLite database
 RUN mkdir -p /app/data /root/.srouter/backups \
-    && chown -R srouter:srouter /root/Codex-Router /app/data /root/.srouter
+    && chown -R srouter:srouter /app /app/data /root/.srouter
 
 # Set working directory
-WORKDIR /root/Codex-Router
+WORKDIR /app
 
 # Switch to non-root user
 USER srouter
