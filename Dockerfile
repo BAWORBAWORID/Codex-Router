@@ -40,7 +40,7 @@ WORKDIR /root/Codex-Router
 FROM base AS deps
 
 # Copy package files first for better layer caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml ./
 COPY packages/*/package.json packages/
 COPY apps/*/package.json apps/
 
