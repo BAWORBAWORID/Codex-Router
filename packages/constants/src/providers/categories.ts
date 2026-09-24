@@ -1,4 +1,4 @@
-import type { ProviderCategory } from "@srouter/types";
+import type { ProviderCategory } from "@codex/types";
 
 export const PROVIDER_CATEGORIES: ProviderCategory[] = [
     "oauth",

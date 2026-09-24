@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import { streamSSE } from "hono/streaming";
-import type { ChatCompletionRequest, APIKeyZod } from "@srouter/types";
+import type { ChatCompletionRequest, APIKeyZod } from "@codex/types";
 import { ChatLogic } from "@/logic/chat.logic.js";
 import { Err, FormatErrorPayload, Ok } from "@/utils/response.js";
 

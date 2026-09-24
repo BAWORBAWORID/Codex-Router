@@ -31,7 +31,7 @@ import { useTokenSaver } from "@/hooks/useTokenSaver";
 import { ProviderIcon } from "@/components/ProviderIcon";
 import { api, getGatewayBaseUrl } from "@/lib/api";
 import { isProviderConnected, getConnectedCount } from "@/utils/provider.utils";
-import type { RequestLogEntry } from "@srouter/types";
+import type { RequestLogEntry } from "@codex/types";
 import type { ListResponse } from "@/lib/types";
 
 type SelectedNodeInfo = {

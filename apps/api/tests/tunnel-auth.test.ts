@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Hono } from "hono";
-import { adminAuthStore } from "@srouter/db";
+import { adminAuthStore } from "@codex/db";
 import { TunnelRouter } from "../src/routes/v1/tunnel.js";
 import {
     ADMIN_SESSION_COOKIE,

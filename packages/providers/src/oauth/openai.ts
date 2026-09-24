@@ -5,7 +5,7 @@ import {
     CODEX_OAUTH_REDIRECT_URI,
     CODEX_OAUTH_SCOPE,
     CODEX_OAUTH_TOKEN_URL
-} from "@srouter/constants";
+} from "@codex/constants";
 import type { OAuthTokenResponse, PKCEPair } from "./base.js";
 
 export interface OpenAIOAuthOptions {

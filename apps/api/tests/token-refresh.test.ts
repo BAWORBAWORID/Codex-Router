@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { deleteProviderDB, getProviderByIdDB, upsertProviderDB } from "@srouter/db";
-import { CodexExecutor } from "@srouter/executors";
-import type { ProviderConfig } from "@srouter/types";
+import { deleteProviderDB, getProviderByIdDB, upsertProviderDB } from "@codex/db";
+import { CodexExecutor } from "@codex/executors";
+import type { ProviderConfig } from "@codex/types";
 import { registry } from "../src/services/registry.js";
 import {
     isDueForRefresh,

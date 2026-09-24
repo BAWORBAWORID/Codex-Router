@@ -1,4 +1,4 @@
-import type { ProviderCategory, ProviderProtocol } from "@srouter/types";
+import type { ProviderCategory, ProviderProtocol } from "@codex/types";
 import { KNOWN_PROVIDERS } from "./providers.js";
 
 export interface DefaultProviderSeed {

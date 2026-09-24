@@ -27,7 +27,7 @@ import { ImportModelsDialog } from "@/components/providers/ImportModelsDialog";
 import { ProviderModelCard } from "@/components/providers/ProviderModelCard";
 import { ProviderModelTable } from "@/components/providers/ProviderModelTable";
 import { ProviderDetailSkeleton } from "@/components/skeletons";
-import { CATEGORY_LABELS, getProviderWebsiteUrl } from "@srouter/constants";
+import { CATEGORY_LABELS, getProviderWebsiteUrl } from "@codex/constants";
 
 export const Route = createFileRoute("/providers/$providerId")({
     staticData: { title: "Providers" },

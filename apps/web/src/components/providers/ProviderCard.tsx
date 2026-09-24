@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, CheckCircle2, Cpu, Layers } from "lucide-react";
-import type { ProviderDefinition } from "@srouter/types";
+import type { ProviderDefinition } from "@codex/types";
 import { ProviderIcon } from "@/components/ProviderIcon";
 import { getConnectedCount } from "@/utils/provider.utils";
-import { CATEGORY_LABELS } from "@srouter/constants";
+import { CATEGORY_LABELS } from "@codex/constants";
 
 const protocolLabels: Record<string, string> = {
     openai: "OpenAI v1",

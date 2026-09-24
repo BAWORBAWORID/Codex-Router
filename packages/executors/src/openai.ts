@@ -1,4 +1,4 @@
-import { OPENAI_BASE_URL } from "@srouter/constants";
+import { OPENAI_BASE_URL } from "@codex/constants";
 import type {
     AIProvider,
     ChatCompletionChunk,
@@ -6,8 +6,8 @@ import type {
     ChatCompletionResponse,
     ModelListResponse,
     ModelObject
-} from "@srouter/types";
-import { isToolCallingNotSupportedError } from "@srouter/pricing";
+} from "@codex/types";
+import { isToolCallingNotSupportedError } from "@codex/pricing";
 import { parseDataLine, streamLines } from "./base.js";
 import { fetchWithRetry } from "./retry.js";
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { createAPIKeyDB, deleteAPIKeyDB, getAPIKeyByKeyDB } from "@srouter/db";
+import { createAPIKeyDB, deleteAPIKeyDB, getAPIKeyByKeyDB } from "@codex/db";
 import { IsModelAllowed } from "@/middleware/ModelAccess.js";
 
 const createdIds: string[] = [];

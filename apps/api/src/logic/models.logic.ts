@@ -1,6 +1,6 @@
-import type { ModelObject } from "@srouter/types";
-import { getAllCustomModelsDB, getAllFallbackRulesDB } from "@srouter/db";
-import { providerAlias, providerBaseId } from "@srouter/constants";
+import type { ModelObject } from "@codex/types";
+import { getAllCustomModelsDB, getAllFallbackRulesDB } from "@codex/db";
+import { providerAlias, providerBaseId } from "@codex/constants";
 import { registry } from "@/services/registry.js";
 
 export class ModelsLogic {

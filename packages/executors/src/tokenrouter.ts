@@ -1,4 +1,4 @@
-import { TOKENROUTER_BASE_URL } from "@srouter/constants";
+import { TOKENROUTER_BASE_URL } from "@codex/constants";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 export interface TokenRouterExecutorOptions extends OpenAIExecutorOptions {}

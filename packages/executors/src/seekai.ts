@@ -1,4 +1,4 @@
-import { SEEKAI_BASE_URL } from "@srouter/constants";
+import { SEEKAI_BASE_URL } from "@codex/constants";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 export interface SeekAIExecutorOptions extends OpenAIExecutorOptions {}

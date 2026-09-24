@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Hono } from "hono";
-import { AnthropicMessageRequestSchema, ChatCompletionRequestSchema } from "@srouter/types";
+import { AnthropicMessageRequestSchema, ChatCompletionRequestSchema } from "@codex/types";
 import { CreateBodyLimitMiddleware, MAX_BODY_BYTES } from "../src/middleware/BodyLimit.js";
 import { ValidateJson } from "../src/middleware/Validation.js";
 import { IsPrivateIpAddress } from "../src/utils/ssrf.js";

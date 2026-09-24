@@ -1,4 +1,4 @@
-import type { ProviderCategory, ProviderProtocol } from "@srouter/types";
+import type { ProviderCategory, ProviderProtocol } from "@codex/types";
 
 export interface ProviderMetadata {
     id: string;

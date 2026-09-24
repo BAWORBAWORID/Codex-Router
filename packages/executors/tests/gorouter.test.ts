@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import type { ChatCompletionRequest } from "@srouter/types";
+import type { ChatCompletionRequest } from "@codex/types";
 import { GoRouterExecutor } from "../src/gorouter.js";
 
 const originalFetch = globalThis.fetch;

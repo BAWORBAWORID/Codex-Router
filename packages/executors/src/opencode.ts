@@ -1,10 +1,10 @@
-import { OPENCODE_ZEN_BASE_URL } from "@srouter/constants";
+import { OPENCODE_ZEN_BASE_URL } from "@codex/constants";
 import type {
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 const OPENCODE_ZEN_MAX_TOKENS = 512;

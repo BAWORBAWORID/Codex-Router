@@ -1,5 +1,5 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { adminAuthStore, type AdminAuthStore } from "@srouter/db";
+import { adminAuthStore, type AdminAuthStore } from "@codex/db";
 
 export const ADMIN_SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const ADMIN_SESSION_COOKIE = "srouter_admin_session";

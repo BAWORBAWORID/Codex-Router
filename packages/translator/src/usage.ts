@@ -1,5 +1,5 @@
-import { calculateCostFromTokens, getPricingForModel } from "@srouter/pricing";
-import type { JSONValue } from "@srouter/types";
+import { calculateCostFromTokens, getPricingForModel } from "@codex/pricing";
+import type { JSONValue } from "@codex/types";
 
 export interface UsageBreakdown {
     prompt_tokens: number;

@@ -1,4 +1,4 @@
-import type { ProviderCategory, ProviderConfig, ProviderProtocol } from "@srouter/types";
+import type { ProviderCategory, ProviderConfig, ProviderProtocol } from "@codex/types";
 import { db } from "./db.js";
 import { num, optStr, str } from "./row-utils.js";
 

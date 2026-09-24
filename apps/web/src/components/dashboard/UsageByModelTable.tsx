@@ -19,7 +19,7 @@ import {
     Search,
     X
 } from "lucide-react";
-import type { UsageStats } from "@srouter/types";
+import type { UsageStats } from "@codex/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {

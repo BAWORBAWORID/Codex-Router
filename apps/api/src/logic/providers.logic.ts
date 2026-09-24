@@ -3,7 +3,7 @@ import {
     isProviderCategory,
     isSeedProvider,
     providerAlias
-} from "@srouter/constants";
+} from "@codex/constants";
 import type {
     CreateProviderZod,
     ModelObject,
@@ -12,14 +12,14 @@ import type {
     ProviderDefinition,
     ProviderProtocol,
     VerifyProviderZod
-} from "@srouter/types";
+} from "@codex/types";
 import {
     addCustomModelDB,
     deleteCustomModelDB,
     getAllProvidersDB,
     getCustomModelsByProviderDB,
     upsertProviderDB
-} from "@srouter/db";
+} from "@codex/db";
 import { loadSavedProvidersFromDB, registry } from "@/services/registry.js";
 import { AssertPublicUrl } from "@/utils/ssrf.js";
 

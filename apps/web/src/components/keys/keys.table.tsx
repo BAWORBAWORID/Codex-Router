@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Copy, KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { APIKeyZod } from "@srouter/types";
+import type { APIKeyZod } from "@codex/types";
 import { formatCompactNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 

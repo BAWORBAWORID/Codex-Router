@@ -3,7 +3,7 @@ import { Moon, Sun, Terminal } from "lucide-react";
 import { useTheme } from "@/context/Theme";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { KNOWN_PROVIDER_MAP, providerBaseId } from "@srouter/constants";
+import { KNOWN_PROVIDER_MAP, providerBaseId } from "@codex/constants";
 import { useProvider } from "@/hooks/useProvider";
 
 type BreadcrumbInfo = {

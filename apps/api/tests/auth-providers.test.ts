@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { deleteProviderDB, getProviderByIdDB } from "@srouter/db";
-import type { AIProvider, ProviderConfig } from "@srouter/types";
+import { deleteProviderDB, getProviderByIdDB } from "@codex/db";
+import type { AIProvider, ProviderConfig } from "@codex/types";
 import { registry } from "../src/services/registry.js";
 import { AuthLogic } from "../src/logic/auth.logic.js";
 import { AuthHandlers } from "../src/services/authHandlers.js";
-import type { AuthProviderHandler } from "@srouter/types";
+import type { AuthProviderHandler } from "@codex/types";
 
 const createdIds: string[] = [];
 

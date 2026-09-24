@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { ChatCompletionRequest, ChatMessage, TokenSaverSettings } from "@srouter/types";
+import type { ChatCompletionRequest, ChatMessage, TokenSaverSettings } from "@codex/types";
 import {
     applyTokenSaver,
     compressFileListings,

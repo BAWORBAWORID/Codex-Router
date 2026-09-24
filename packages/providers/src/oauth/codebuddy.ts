@@ -10,8 +10,8 @@ import {
     CODEBUDDY_CN_DOMAIN,
     CODEBUDDY_CN_ORIGIN,
     CODEBUDDY_CN_USER_AGENT
-} from "@srouter/constants";
-import { AuthPollStatus } from "@srouter/types";
+} from "@codex/constants";
+import { AuthPollStatus } from "@codex/types";
 import type { OAuthTokenResponse } from "./base.js";
 
 export interface CodeBuddyOAuthOptions {

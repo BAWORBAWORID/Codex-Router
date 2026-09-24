@@ -18,7 +18,7 @@ import {
     ChevronLeft,
     ChevronRight
 } from "lucide-react";
-import type { RequestLogEntry } from "@srouter/types";
+import type { RequestLogEntry } from "@codex/types";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,

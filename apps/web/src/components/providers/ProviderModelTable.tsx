@@ -22,7 +22,7 @@ import {
     Trash2,
     X
 } from "lucide-react";
-import type { ModelObject } from "@srouter/types";
+import type { ModelObject } from "@codex/types";
 import {
     Table,
     TableHeader,

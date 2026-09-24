@@ -3,17 +3,17 @@ import {
     CODEBUDDY_CN_BASE_URL,
     CODEBUDDY_CN_DOMAIN,
     CODEBUDDY_CN_USER_AGENT
-} from "@srouter/constants";
+} from "@codex/constants";
 import {
     cleanupExpiredOAuthSessionsDB,
     deleteOAuthSessionDB,
     getOAuthSessionDB,
     saveOAuthSessionDB,
     upsertProviderDB
-} from "@srouter/db";
-import { CodeBuddyCNOAuth, CodeBuddyOAuth, generatePKCE, QoderOAuth } from "@srouter/providers";
-import { CodeBuddyExecutor, QoderExecutor } from "@srouter/executors";
-import type { ProviderConfig } from "@srouter/types";
+} from "@codex/db";
+import { CodeBuddyCNOAuth, CodeBuddyOAuth, generatePKCE, QoderOAuth } from "@codex/providers";
+import { CodeBuddyExecutor, QoderExecutor } from "@codex/executors";
+import type { ProviderConfig } from "@codex/types";
 import { registry } from "@/services/registry.js";
 import {
     AuthPollStatus,
@@ -22,10 +22,10 @@ import {
     type OAuthLoginParams,
     type OAuthLoginResult,
     type TokenImportParams
-} from "@srouter/types";
+} from "@codex/types";
 import { AuthHandlers } from "@/services/authHandlers.js";
 
-export type { OAuthLoginParams, OAuthLoginResult, TokenImportParams } from "@srouter/types";
+export type { OAuthLoginParams, OAuthLoginResult, TokenImportParams } from "@codex/types";
 
 const PKCE_SESSION_MAX_AGE_MS = 15 * 60 * 1000;
 

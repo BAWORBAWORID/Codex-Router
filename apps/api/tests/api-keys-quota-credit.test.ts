@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { Hono } from "hono";
-import { createAPIKeyDB, deleteAPIKeyDB, incrementAPIKeyUsageDB } from "@srouter/db";
+import { createAPIKeyDB, deleteAPIKeyDB, incrementAPIKeyUsageDB } from "@codex/db";
 import { ApiKeyAuth } from "@/middleware/ApiKeyAuth.js";
 
 const createdIds: string[] = [];

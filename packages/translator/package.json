@@ -1,5 +1,5 @@
 {
-    "name": "@srouter/translator",
+    "name": "@codex/translator",
     "version": "0.1.3",
     "type": "module",
     "repository": {
@@ -26,9 +26,9 @@
         "test": "tsx --test tests/**/*.test.ts"
     },
     "dependencies": {
-        "@srouter/constants": "*",
-        "@srouter/pricing": "*",
-        "@srouter/types": "*"
+        "@codex/constants": "workspace:*",
+        "@codex/pricing": "workspace:*",
+        "@codex/types": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^26.1.1",

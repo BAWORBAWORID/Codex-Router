@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import type { ChatCompletionRequest } from "@srouter/types";
+import type { ChatCompletionRequest } from "@codex/types";
 import { TabiTokenExecutor } from "../src/tabitoken.js";
 
 const originalFetch = globalThis.fetch;

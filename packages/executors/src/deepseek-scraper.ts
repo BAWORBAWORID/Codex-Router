@@ -15,7 +15,7 @@ import type {
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import { parseDataLine } from "./base.js";
 
 // ── Constants ────────────────────────────────────────────────────────────────

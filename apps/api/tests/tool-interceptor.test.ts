@@ -5,8 +5,8 @@ import type {
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatCompletionResponse
-} from "@srouter/types";
-import { deleteLogsByProviderDB } from "@srouter/db";
+} from "@codex/types";
+import { deleteLogsByProviderDB } from "@codex/db";
 import {
     extractSearchQuery,
     isToolProvidedByClient,

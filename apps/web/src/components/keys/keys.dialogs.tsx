@@ -6,7 +6,7 @@ import type {
     APIKeyZod,
     ModelListResponse,
     UpdateAPIKeyZod
-} from "@srouter/types";
+} from "@codex/types";
 import { api } from "@/lib/api";
 import { cn, formatCompactNumber } from "@/lib/utils";
 import { useCopy } from "@/hooks/useCopy";

@@ -23,10 +23,10 @@ import { resolveWebDistPath } from "@/services/webDist.js";
 import { warmModelRegistry } from "@/services/registry.js";
 import { bootstrapAdminAccountFromEnv } from "@/services/adminAuth.js";
 import { autostartTunnelIfEnabled } from "@/services/cloudflareTunnel.js";
-import { adminAuthStore } from "@srouter/db";
+import { adminAuthStore } from "@codex/db";
 
 import { HTTPException } from "hono/http-exception";
-import { API_VERSION } from "@srouter/constants";
+import { API_VERSION } from "@codex/constants";
 
 const app = new Hono();
 

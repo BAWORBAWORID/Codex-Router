@@ -1,4 +1,4 @@
-import type { APIKeyZod } from "@srouter/types";
+import type { APIKeyZod } from "@codex/types";
 import { db } from "./db.js";
 import { randomUUID } from "node:crypto";
 import { generateId, num, str } from "./row-utils.js";

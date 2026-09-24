@@ -5,8 +5,8 @@ import {
     deleteAPIKeyDB,
     addCreditAPIKeyDB,
     updateAPIKeyDB
-} from "@srouter/db";
-import { CreateAPIKeySchema, AddCreditSchema, UpdateAPIKeySchema } from "@srouter/types";
+} from "@codex/db";
+import { CreateAPIKeySchema, AddCreditSchema, UpdateAPIKeySchema } from "@codex/types";
 import { Err, Ok } from "@/utils/response.js";
 
 export class KeysController {

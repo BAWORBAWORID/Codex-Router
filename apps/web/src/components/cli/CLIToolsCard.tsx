@@ -15,9 +15,9 @@ import { useCopy } from "@/hooks/useCopy";
 import { useFallbacks } from "@/hooks/useFallbacks";
 import { ProviderIcon } from "@/components/ProviderIcon";
 import { Button } from "@/components/ui/button";
-import { CLI_VERSION, KNOWN_PROVIDERS } from "@srouter/constants";
-import type { APIKeyZod, ModelListResponse } from "@srouter/types";
-import type { FallbackRule } from "@srouter/types";
+import { CLI_VERSION, KNOWN_PROVIDERS } from "@codex/constants";
+import type { APIKeyZod, ModelListResponse } from "@codex/types";
+import type { FallbackRule } from "@codex/types";
 
 /* ─── Tool Definitions ────────────────────────────────────────────── */
 

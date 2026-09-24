@@ -6,7 +6,7 @@ import {
     getAllAPIKeysDB,
     getAPIKeyByKeyDB,
     incrementAPIKeyUsageDB
-} from "@srouter/db";
+} from "@codex/db";
 
 const createdIds: string[] = [];
 

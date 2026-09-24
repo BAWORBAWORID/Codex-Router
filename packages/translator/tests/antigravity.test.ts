@@ -17,7 +17,7 @@ import {
     stripTrailingAssistantTurn,
     stripZeroWidth
 } from "../src/antigravity.js";
-import type { ChatCompletionRequest } from "@srouter/types";
+import type { ChatCompletionRequest } from "@codex/types";
 
 test("buildAntigravityContents produces valid parts without empty text in oneof functionCall / functionResponse", () => {
     const req: ChatCompletionRequest = {

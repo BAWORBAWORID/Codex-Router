@@ -19,7 +19,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ProviderIcon } from "@/components/ProviderIcon";
 import { cn } from "@/lib/utils";
 import { useQuota } from "@/hooks/useQuota";
-import type { LiveModelQuotaItem, ProviderUsageMetric } from "@srouter/types";
+import type { LiveModelQuotaItem, ProviderUsageMetric } from "@codex/types";
 
 export const Route = createFileRoute("/quota")({
     staticData: { title: "Quotas & Limits" },

@@ -5,7 +5,7 @@ import type {
     TokenSaverPreviewRequest,
     TokenSaverPreviewResponse,
     TokenSaverSettings
-} from "@srouter/types";
+} from "@codex/types";
 
 export const DEFAULT_TOKEN_SAVER_SETTINGS: TokenSaverSettings = {
     enabled: true,

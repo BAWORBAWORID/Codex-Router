@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, getGatewayBaseUrl } from "@/lib/api";
-import type { APIKeyZod } from "@srouter/types";
+import type { APIKeyZod } from "@codex/types";
 
 export interface GatewayInfo {
     baseUrl: string;

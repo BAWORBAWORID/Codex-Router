@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
 import { Hono } from "hono";
-import type { AIProvider } from "@srouter/types";
-import { createFallbackRuleDB } from "@srouter/db";
+import type { AIProvider } from "@codex/types";
+import { createFallbackRuleDB } from "@codex/db";
 import { ModelsRouter } from "../src/routes/v1/models.js";
 import { registry } from "../src/services/registry.js";
 import { ModelsLogic } from "../src/logic/models.logic.js";

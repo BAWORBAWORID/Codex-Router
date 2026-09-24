@@ -4,8 +4,8 @@ import {
     getRequireApiKeyDB,
     setRequireApiKeyDB,
     setSettingDB
-} from "@srouter/db";
-import { UpdateSettingsSchema } from "@srouter/types";
+} from "@codex/db";
+import { UpdateSettingsSchema } from "@codex/types";
 import { Err, Ok } from "@/utils/response.js";
 
 export class SettingsController {

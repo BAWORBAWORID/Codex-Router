@@ -1,9 +1,9 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { adminAuthStore, type AdminAuthStore } from "@srouter/db";
+import { adminAuthStore, type AdminAuthStore } from "@codex/db";
 import { Err, Ok } from "@/utils/response.js";
-import { AdminChangePasswordSchema, AdminLoginSchema, AdminSetupSchema } from "@srouter/types";
+import { AdminChangePasswordSchema, AdminLoginSchema, AdminSetupSchema } from "@codex/types";
 import {
     ADMIN_SESSION_COOKIE,
     ADMIN_SESSION_TTL_MS,

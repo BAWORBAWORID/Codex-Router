@@ -1,4 +1,4 @@
-import type { CreateAPIKeyZod, CreateProviderZod } from "@srouter/types";
+import type { CreateAPIKeyZod, CreateProviderZod } from "@codex/types";
 
 // Response envelopes used by the API
 export interface ListResponse<T> {

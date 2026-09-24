@@ -4,7 +4,7 @@ import type {
     TokenSaverSettings,
     TokenSaverPreviewResponse,
     TrimMessagesSettings
-} from "@srouter/types";
+} from "@codex/types";
 
 const ANSI_REGEX = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g;
 

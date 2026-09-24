@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { deleteProviderDB, upsertProviderDB } from "@srouter/db";
-import type { ProviderConfig } from "@srouter/types";
+import { deleteProviderDB, upsertProviderDB } from "@codex/db";
+import type { ProviderConfig } from "@codex/types";
 
 const createdIds: string[] = [];
 const originalFetch = globalThis.fetch;

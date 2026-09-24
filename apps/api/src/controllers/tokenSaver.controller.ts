@@ -1,12 +1,12 @@
 import type { Context } from "hono";
-import { getTokenSaverSettingsDB, setTokenSaverSettingsDB } from "@srouter/db";
-import { PreviewTokenSaver } from "@srouter/translator";
+import { getTokenSaverSettingsDB, setTokenSaverSettingsDB } from "@codex/db";
+import { PreviewTokenSaver } from "@codex/translator";
 import {
     TokenSaverPreviewRequestSchema,
     TokenSaverSettingsSchema,
     type TokenSaverPreviewRequest,
     type TokenSaverSettings
-} from "@srouter/types";
+} from "@codex/types";
 import { Err, Ok } from "@/utils/response.js";
 
 export class TokenSaverController {

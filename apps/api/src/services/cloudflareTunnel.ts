@@ -4,7 +4,7 @@ import fs from "node:fs";
 import https from "node:https";
 import os from "node:os";
 import path from "node:path";
-import { getSettingDB, setSettingDB } from "@srouter/db";
+import { getSettingDB, setSettingDB } from "@codex/db";
 
 const SETTING_TUNNEL_TOKEN = "cloudflare_tunnel_token";
 const SETTING_TUNNEL_DOMAIN = "cloudflare_tunnel_domain";

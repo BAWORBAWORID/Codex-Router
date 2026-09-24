@@ -5,8 +5,8 @@ import { ChatRouter } from "../src/routes/v1/chat.js";
 import { ModelsRouter } from "../src/routes/v1/models.js";
 import { ProvidersRouter } from "../src/routes/v1/providers.js";
 import { registry } from "../src/services/registry.js";
-import type { AIProvider, ChatCompletionRequest, ChatCompletionResponse } from "@srouter/types";
-import { deleteLogsByProviderDB } from "@srouter/db";
+import type { AIProvider, ChatCompletionRequest, ChatCompletionResponse } from "@codex/types";
+import { deleteLogsByProviderDB } from "@codex/db";
 
 test("OpenCode Compatibility - supports both /v1 and root endpoints", async (t) => {
     const mockProviderId = "opencode_mock_provider";

@@ -5,8 +5,8 @@ import {
     deleteFallbackRuleDB,
     deleteLogsByProviderDB,
     getRecentLogsDB
-} from "@srouter/db";
-import type { AIProvider } from "@srouter/types";
+} from "@codex/db";
+import type { AIProvider } from "@codex/types";
 import { ChatLogic } from "../src/logic/chat.logic.js";
 import { registry } from "../src/services/registry.js";
 

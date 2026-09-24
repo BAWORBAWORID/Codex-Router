@@ -16,7 +16,7 @@ import {
     SEEKAI_BASE_URL,
     TABITOKEN_BASE_URL,
     TOKENROUTER_BASE_URL
-} from "@srouter/constants";
+} from "@codex/constants";
 import {
     AntigravityExecutor,
     AnthropicExecutor,
@@ -30,7 +30,7 @@ import {
     SeekAIExecutor,
     TabiTokenExecutor,
     TokenRouterExecutor
-} from "@srouter/executors";
+} from "@codex/executors";
 import {
     AntigravityOAuth,
     ClaudeOAuth,
@@ -38,8 +38,8 @@ import {
     CodeBuddyOAuth,
     OpenAICodexOAuth,
     QoderOAuth
-} from "@srouter/providers";
-import type { AuthProviderHandler } from "@srouter/types";
+} from "@codex/providers";
+import type { AuthProviderHandler } from "@codex/types";
 
 const openaiCodex: AuthProviderHandler = {
     providerId: "openai_codex",

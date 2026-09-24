@@ -1,4 +1,4 @@
-import { GOROUTER_BASE_URL } from "@srouter/constants";
+import { GOROUTER_BASE_URL } from "@codex/constants";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 export interface GoRouterExecutorOptions extends OpenAIExecutorOptions {}

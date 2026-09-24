@@ -9,7 +9,7 @@ import type {
     ToolChoiceOption,
     ToolDefinition,
     UsageInfo
-} from "@srouter/types";
+} from "@codex/types";
 
 const HOSTED_TOOL_TYPES = new Set([
     "image_generation",

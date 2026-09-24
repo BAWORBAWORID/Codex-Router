@@ -1,4 +1,4 @@
-import type { TokenSaverSettings } from "@srouter/types";
+import type { TokenSaverSettings } from "@codex/types";
 import { getSettingDB, setSettingDB } from "./settings.js";
 
 export const DEFAULT_TOKEN_SAVER_SETTINGS: TokenSaverSettings = {

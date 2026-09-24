@@ -1,5 +1,5 @@
-import { BAI_BASE_URL, BAI_DEFAULT_MODELS } from "@srouter/constants";
-import type { ModelObject } from "@srouter/types";
+import { BAI_BASE_URL, BAI_DEFAULT_MODELS } from "@codex/constants";
+import type { ModelObject } from "@codex/types";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 export interface BAIExecutorOptions extends OpenAIExecutorOptions {}

@@ -1,5 +1,5 @@
 {
-    "name": "@srouter/providers",
+    "name": "@codex/providers",
     "version": "0.1.3",
     "type": "module",
     "repository": {
@@ -26,8 +26,8 @@
         "clean": "rm -rf dist"
     },
     "dependencies": {
-        "@srouter/constants": "*",
-        "@srouter/types": "*"
+        "@codex/constants": "workspace:*",
+        "@codex/types": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^26.1.1",

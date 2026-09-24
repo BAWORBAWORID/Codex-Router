@@ -5,8 +5,8 @@ import {
     DEFAULT_TOKEN_SAVER_SETTINGS,
     getTokenSaverSettingsDB,
     setTokenSaverSettingsDB
-} from "@srouter/db";
-import type { TokenSaverSettings } from "@srouter/types";
+} from "@codex/db";
+import type { TokenSaverSettings } from "@codex/types";
 import { TokenSaverController } from "../src/controllers/tokenSaver.controller.js";
 
 afterEach(() => {

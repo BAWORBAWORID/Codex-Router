@@ -1,5 +1,5 @@
-import { CATEGORY_DESCRIPTIONS, CATEGORY_LABELS, CATEGORY_ORDER } from "@srouter/constants";
-import type { ProviderCategory, ProviderDefinition } from "@srouter/types";
+import { CATEGORY_DESCRIPTIONS, CATEGORY_LABELS, CATEGORY_ORDER } from "@codex/constants";
+import type { ProviderCategory, ProviderDefinition } from "@codex/types";
 import { getConnectedCount } from "@/utils/provider.utils";
 
 export interface CatalogSummary {

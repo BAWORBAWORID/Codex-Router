@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { APP_VERSION } from "@srouter/constants";
+import { APP_VERSION } from "@codex/constants";
 
 export interface AppSettings {
     // Appearance

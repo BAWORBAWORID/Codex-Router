@@ -4,8 +4,8 @@ import {
     AnthropicToOpenAIRequest,
     OpenAIToAnthropicResponse,
     OpenAIToAnthropicStream
-} from "@srouter/translator";
-import { AnthropicMessageRequestSchema, type AnthropicMessageRequest } from "@srouter/types";
+} from "@codex/translator";
+import { AnthropicMessageRequestSchema, type AnthropicMessageRequest } from "@codex/types";
 import { ChatLogic } from "@/logic/chat.logic.js";
 import { AnthropicErr, FormatAnthropicErrorPayload, Ok } from "@/utils/response.js";
 import { GetApiKeyRow, IsModelAllowed } from "@/middleware/ModelAccess.js";

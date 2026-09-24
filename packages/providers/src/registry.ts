@@ -3,7 +3,7 @@ import {
     providerAlias,
     providerBaseId,
     providerTypeForAlias
-} from "@srouter/constants";
+} from "@codex/constants";
 import type {
     AIProvider,
     ChatCompletionChunk,
@@ -11,7 +11,7 @@ import type {
     ChatCompletionResponse,
     ModelObject,
     ProviderDefinition
-} from "@srouter/types";
+} from "@codex/types";
 import { CircuitBreaker, circuitBreaker as defaultCircuitBreaker } from "./circuitBreaker.js";
 
 const DEFAULT_MAX_TOKENS_CAP = 4096;

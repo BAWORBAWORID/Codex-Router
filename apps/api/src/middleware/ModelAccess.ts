@@ -1,5 +1,5 @@
 import type { Context, MiddlewareHandler } from "hono";
-import type { APIKeyZod } from "@srouter/types";
+import type { APIKeyZod } from "@codex/types";
 import { Err } from "@/utils/response.js";
 
 function NormalizeModelId(model: string): string {

@@ -1,6 +1,6 @@
-import { getRecentLogsDB, getUsageByModelDB, getUsageSummaryDB } from "@srouter/db";
-import type { RequestLogEntry, UsageStats } from "@srouter/types";
-import { formatCost } from "@srouter/pricing";
+import { getRecentLogsDB, getUsageByModelDB, getUsageSummaryDB } from "@codex/db";
+import type { RequestLogEntry, UsageStats } from "@codex/types";
+import { formatCost } from "@codex/pricing";
 
 export class LogsLogic {
     public static getRecentLogs(limit: number = 50): RequestLogEntry[] {

@@ -6,7 +6,7 @@ import type {
     ProviderCategory,
     ProviderDefinition,
     ProviderProtocol
-} from "@srouter/types";
+} from "@codex/types";
 
 export interface AddConnectionPayload {
     id?: string;

@@ -14,7 +14,7 @@ import type {
     FinishReason,
     ToolCall,
     ToolDefinition
-} from "@srouter/types";
+} from "@codex/types";
 
 function mapSystemPrompt(system: AnthropicMessageRequest["system"]): ChatMessage | null {
     if (!system) return null;

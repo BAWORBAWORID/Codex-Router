@@ -10,7 +10,7 @@ import {
     DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import type { ModelObject } from "@srouter/types";
+import type { ModelObject } from "@codex/types";
 
 interface ImportModelsDialogProps {
     open: boolean;

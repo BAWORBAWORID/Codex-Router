@@ -8,13 +8,13 @@ import {
     deleteProviderDB,
     setRequireApiKeyDB,
     upsertProviderDB
-} from "@srouter/db";
+} from "@codex/db";
 import type {
     AIProvider,
     ChatCompletionRequest,
     ChatCompletionResponse,
     ProviderConfig
-} from "@srouter/types";
+} from "@codex/types";
 import { MessagesRouter } from "../src/routes/v1/messages.js";
 
 const app = new Hono();

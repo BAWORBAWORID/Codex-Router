@@ -15,8 +15,8 @@ import {
     SEEKAI_BASE_URL,
     TABITOKEN_BASE_URL,
     TOKENROUTER_BASE_URL
-} from "@srouter/constants";
-import { deleteProviderDB, getAllProvidersDB, upsertProviderDB } from "@srouter/db";
+} from "@codex/constants";
+import { deleteProviderDB, getAllProvidersDB, upsertProviderDB } from "@codex/db";
 import {
     AntigravityExecutor,
     AnthropicExecutor,
@@ -34,8 +34,8 @@ import {
     SeekAIExecutor,
     TabiTokenExecutor,
     TokenRouterExecutor
-} from "@srouter/executors";
-import { ProviderRegistry } from "@srouter/providers";
+} from "@codex/executors";
+import { ProviderRegistry } from "@codex/providers";
 
 // Create a global ProviderRegistry instance
 export const registry = new ProviderRegistry();

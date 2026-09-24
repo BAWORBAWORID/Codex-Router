@@ -5,12 +5,12 @@ import {
     fetchCodeBuddyCNLiveQuota,
     saveOAuthSessionDB,
     upsertProviderDB
-} from "@srouter/db";
-import { CODEBUDDY_CN_BASE_URL, providerById } from "@srouter/constants";
-import type { ProviderConfig } from "@srouter/types";
+} from "@codex/db";
+import { CODEBUDDY_CN_BASE_URL, providerById } from "@codex/constants";
+import type { ProviderConfig } from "@codex/types";
 import { AuthLogic } from "../src/logic/auth.logic.js";
 import { AuthHandlers } from "../src/services/authHandlers.js";
-import { CodeBuddyCNOAuth } from "@srouter/providers";
+import { CodeBuddyCNOAuth } from "@codex/providers";
 import { ProvidersLogic } from "../src/logic/providers.logic.js";
 
 const createdIds: string[] = [];

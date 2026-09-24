@@ -6,7 +6,7 @@ import {
     getAPIKeyByKeyDB,
     getRequireApiKeyDB,
     type AdminAuthStore
-} from "@srouter/db";
+} from "@codex/db";
 import { Err } from "@/utils/response.js";
 import {
     ADMIN_SESSION_COOKIE,

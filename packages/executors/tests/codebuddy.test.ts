@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import type { ChatCompletionRequest } from "@srouter/types";
-import { CODEBUDDY_MODELS } from "@srouter/constants";
+import type { ChatCompletionRequest } from "@codex/types";
+import { CODEBUDDY_MODELS } from "@codex/constants";
 import { CodeBuddyExecutor } from "../src/codebuddy.js";
 
 const originalFetch = globalThis.fetch;

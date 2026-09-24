@@ -6,7 +6,7 @@ import ComboModelPickerModal, {
     type ComboModelItem
 } from "./combo.dialog";
 import { ProviderIcon } from "@/components/ProviderIcon";
-import type { CreateFallbackRuleInput, FallbackRule } from "@srouter/types";
+import type { CreateFallbackRuleInput, FallbackRule } from "@codex/types";
 
 interface ComboFormProps {
     open?: boolean;

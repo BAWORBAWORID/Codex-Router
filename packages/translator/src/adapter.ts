@@ -6,7 +6,7 @@ import type {
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatCompletionResponse
-} from "@srouter/types";
+} from "@codex/types";
 
 /**
  * Converts OpenAI ChatCompletionRequest into Anthropic MessageRequest format

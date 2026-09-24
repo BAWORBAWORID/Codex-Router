@@ -1,6 +1,6 @@
-import { CATEGORY_DESCRIPTIONS, CATEGORY_LABELS } from "@srouter/constants";
+import { CATEGORY_DESCRIPTIONS, CATEGORY_LABELS } from "@codex/constants";
 import { Search } from "lucide-react";
-import type { ProviderDefinition } from "@srouter/types";
+import type { ProviderDefinition } from "@codex/types";
 import { ProviderRow } from "./ProviderRow";
 import { ProviderCard } from "./ProviderCard";
 

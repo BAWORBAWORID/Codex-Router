@@ -1,12 +1,12 @@
-import { CODEBUDDY_BASE_URL, CODEBUDDY_MODELS } from "@srouter/constants";
-import { accumulateChunks } from "@srouter/translator";
+import { CODEBUDDY_BASE_URL, CODEBUDDY_MODELS } from "@codex/constants";
+import { accumulateChunks } from "@codex/translator";
 import type {
     AIProvider,
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import { parseDataLine, streamLines } from "./base.js";
 
 function stripProviderPrefix(model: string): string {

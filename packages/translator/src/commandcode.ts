@@ -12,7 +12,7 @@ import type {
     ToolCall,
     ToolFunctionParameters,
     UsageInfo
-} from "@srouter/types";
+} from "@codex/types";
 
 const DEFAULT_MAX_TOKENS = 4096;
 

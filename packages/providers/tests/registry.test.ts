@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { getProviderAlias, ProviderRegistry } from "../src/registry.js";
-import type { AIProvider } from "@srouter/types";
+import type { AIProvider } from "@codex/types";
 
 const delay = (ms: number): Promise<void> =>
     new Promise((resolve) => {

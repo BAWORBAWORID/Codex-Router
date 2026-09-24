@@ -12,7 +12,7 @@ import {
     Sparkles
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import type { CompressLlmOutputSettings, LazySeniorDevSettings } from "@srouter/types";
+import type { CompressLlmOutputSettings, LazySeniorDevSettings } from "@codex/types";
 
 interface PromptOptimizerCardProps {
     lazySettings: LazySeniorDevSettings;

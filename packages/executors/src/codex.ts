@@ -4,8 +4,8 @@ import type {
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
-import { CODEX_BASE_URL, CODEX_MODELS_URL } from "@srouter/constants";
+} from "@codex/types";
+import { CODEX_BASE_URL, CODEX_MODELS_URL } from "@codex/constants";
 import {
     accumulateChunks,
     ChatToResponsesBody,
@@ -15,7 +15,7 @@ import {
     ResponsesEventToChunk,
     type ResponsesRequestBody,
     type ResponsesStreamEventData
-} from "@srouter/translator";
+} from "@codex/translator";
 import { parseDataLine, streamLines } from "./base.js";
 import { extractSseErrorMessage, MODEL_CAPACITY_MESSAGE } from "./sse.js";
 

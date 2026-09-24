@@ -6,7 +6,7 @@ import {
     deleteAPIKeyDB,
     getRequireApiKeyDB,
     setRequireApiKeyDB
-} from "@srouter/db";
+} from "@codex/db";
 import { ApiKeyAuth, CreateApiKeyAuth } from "../src/middleware/ApiKeyAuth.js";
 
 const createdKeyIds: string[] = [];

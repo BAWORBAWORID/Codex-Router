@@ -4,7 +4,7 @@ import type {
     ChatCompletionResponse,
     JSONObject,
     JSONValue
-} from "@srouter/types";
+} from "@codex/types";
 import crypto from "node:crypto";
 
 export interface GeminiFunctionCall {

@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { KNOWN_PROVIDERS } from "@srouter/constants";
-import type { ProviderDefinition } from "@srouter/types";
+import { KNOWN_PROVIDERS } from "@codex/constants";
+import type { ProviderDefinition } from "@codex/types";
 import {
     buildFilterOptions,
     buildGroups,

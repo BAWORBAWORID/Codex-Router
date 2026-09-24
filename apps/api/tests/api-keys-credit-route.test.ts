@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { createAPIKeyDB, deleteAPIKeyDB, getAPIKeyByKeyDB } from "@srouter/db";
-import type { APIKeyZod } from "@srouter/types";
+import { createAPIKeyDB, deleteAPIKeyDB, getAPIKeyByKeyDB } from "@codex/db";
+import type { APIKeyZod } from "@codex/types";
 import { Hono } from "hono";
 import { KeysRouter } from "@/routes/v1/keys.js";
 import { createAdminSession, ADMIN_SESSION_COOKIE } from "@/services/adminAuth.js";

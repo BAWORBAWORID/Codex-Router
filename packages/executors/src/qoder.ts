@@ -14,14 +14,14 @@ import {
     QODER_MODEL_ALIASES,
     QODER_RSA_PUBLIC_KEY,
     QODER_USERINFO_URL
-} from "@srouter/constants";
+} from "@codex/constants";
 import type {
     AIProvider,
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import { parseDataLine, streamLines } from "./base.js";
 
 /**

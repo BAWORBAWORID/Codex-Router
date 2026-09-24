@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { adminAuthStore, type AdminAuthStore } from "@srouter/db";
+import { adminAuthStore, type AdminAuthStore } from "@codex/db";
 import { AdminController } from "@/controllers/admin.controller.js";
 import type { Context } from "hono";
 

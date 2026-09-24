@@ -1,4 +1,4 @@
-import { ANTHROPIC_BASE_URL } from "@srouter/constants";
+import { ANTHROPIC_BASE_URL } from "@codex/constants";
 import type {
     AIProvider,
     AnthropicMessageResponse,
@@ -6,12 +6,12 @@ import type {
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import {
     AnthropicEventToOpenAIChunk,
     AnthropicToOpenAIResponse,
     OpenAIToAnthropicRequest
-} from "@srouter/translator";
+} from "@codex/translator";
 import { parseDataLine, streamLines } from "./base.js";
 
 export interface AnthropicExecutorOptions {

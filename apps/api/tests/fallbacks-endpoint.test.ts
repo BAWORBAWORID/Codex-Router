@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { createFallbackRuleDB, deleteFallbackRuleDB, getFallbackRuleByIdDB } from "@srouter/db";
+import { createFallbackRuleDB, deleteFallbackRuleDB, getFallbackRuleByIdDB } from "@codex/db";
 import { Hono } from "hono";
 import { SettingsRouter } from "../src/routes/v1/settings.js";
 import { ADMIN_SESSION_COOKIE, createAdminSession } from "../src/services/adminAuth.js";

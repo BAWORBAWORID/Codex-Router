@@ -5,8 +5,8 @@ import {
     getAllFallbackRulesDB,
     getFallbackRuleByIdDB,
     updateFallbackRuleDB
-} from "@srouter/db";
-import { FallbackRuleSchema, UpdateFallbackRuleSchema } from "@srouter/types";
+} from "@codex/db";
+import { FallbackRuleSchema, UpdateFallbackRuleSchema } from "@codex/types";
 import { Err, Ok } from "@/utils/response.js";
 
 export class FallbacksController {

@@ -1,4 +1,4 @@
-import type { ProviderDefinition } from "@srouter/types";
+import type { ProviderDefinition } from "@codex/types";
 
 export function getConnectedCount(provider: ProviderDefinition): number {
     return provider.status.connectedCount ?? (provider.status.state === "connected" ? 1 : 0);

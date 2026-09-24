@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Hono } from "hono";
-import { adminAuthStore } from "@srouter/db";
+import { adminAuthStore } from "@codex/db";
 import { CreateCsrfOriginGuard } from "../src/middleware/CsrfOrigin.js";
 import { ADMIN_SESSION_COOKIE, createAdminSession, revokeAdminSession } from "../src/services/adminAuth.js";
 

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { COMMANDCODE_BASE_URL, COMMANDCODE_MODELS_URL } from "@srouter/constants";
+import { COMMANDCODE_BASE_URL, COMMANDCODE_MODELS_URL } from "@codex/constants";
 import type {
     AIProvider,
     ChatCompletionChunk,
@@ -7,14 +7,14 @@ import type {
     ChatCompletionResponse,
     ModelListResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import {
     accumulateChunks,
     buildRequestBody,
     commandCodeEventToOpenAIChunk,
     createCommandCodeStreamState,
     type CommandCodeEvent
-} from "@srouter/translator";
+} from "@codex/translator";
 import { parseDataLine, streamLines } from "./base.js";
 
 export interface CommandCodeExecutorOptions {

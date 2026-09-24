@@ -3,7 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import { afterEach, test } from "node:test";
 import { Hono } from "hono";
 import { AdminAuthStore } from "../../../packages/db/src/adminAuth.js";
-import { setRequireApiKeyDB } from "@srouter/db";
+import { setRequireApiKeyDB } from "@codex/db";
 import { ADMIN_SESSION_COOKIE, createAdminSession } from "../src/services/adminAuth.js";
 import { CreateAdminAuthMiddleware } from "../src/middleware/AdminAuth.js";
 import { CreateApiKeyAuth } from "../src/middleware/ApiKeyAuth.js";

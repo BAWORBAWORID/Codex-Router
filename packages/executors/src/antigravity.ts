@@ -3,14 +3,14 @@ import {
     ANTIGRAVITY_BROWSER_USER_AGENT,
     ANTIGRAVITY_IDE_BASE_URL,
     ANTIGRAVITY_MODELS
-} from "@srouter/constants";
+} from "@codex/constants";
 import type {
     AIProvider,
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatCompletionResponse,
     ModelObject
-} from "@srouter/types";
+} from "@codex/types";
 import {
     ANTIGRAVITY_IDE_USER_AGENT,
     accumulateChunks,
@@ -28,7 +28,7 @@ import {
     parseRetryFromErrorMessage,
     resolveAntigravityOutputCap,
     stripBlacklistedRequest
-} from "@srouter/translator";
+} from "@codex/translator";
 import { OpenAIExecutor } from "./openai.js";
 import { parseDataLine, streamLines } from "./base.js";
 import { fetchWithRetry } from "./retry.js";

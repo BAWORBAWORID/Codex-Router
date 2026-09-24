@@ -1,5 +1,5 @@
-import { QODER_DEVICE_TOKEN_URL, QODER_LOGIN_URL, QODER_USERINFO_URL } from "@srouter/constants";
-import { AuthPollStatus } from "@srouter/types";
+import { QODER_DEVICE_TOKEN_URL, QODER_LOGIN_URL, QODER_USERINFO_URL } from "@codex/constants";
+import { AuthPollStatus } from "@codex/types";
 import type { OAuthTokenResponse, PKCEPair } from "./base.js";
 
 export interface QoderOAuthOptions {

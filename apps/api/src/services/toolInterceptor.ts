@@ -1,10 +1,10 @@
-import { performWebSearch, type WebSearchResponse } from "@srouter/executors";
+import { performWebSearch, type WebSearchResponse } from "@codex/executors";
 import type {
     ChatCompletionChunk,
     ChatCompletionRequest,
     ChatMessage,
     ToolCall
-} from "@srouter/types";
+} from "@codex/types";
 
 export const INTERCEPTED_SEARCH_TOOLS = new Set([
     "web_search",

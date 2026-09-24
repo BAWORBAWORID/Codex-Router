@@ -1,5 +1,5 @@
 import { Bot, Check, Copy, Star, Trash2 } from "lucide-react";
-import type { ModelObject } from "@srouter/types";
+import type { ModelObject } from "@codex/types";
 import { useFavorites } from "@/hooks/useFavorites";
 
 interface ProviderModelCardProps {

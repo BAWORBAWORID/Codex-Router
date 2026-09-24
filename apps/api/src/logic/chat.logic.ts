@@ -3,14 +3,14 @@ import {
     getTokenSaverSettingsDB,
     logRequestDB,
     incrementAPIKeyUsageDB
-} from "@srouter/db";
+} from "@codex/db";
 import {
     applyTokenSaver,
     estimateCostForUsage,
     extractUsageBreakdown,
     resolveAntigravityOutputCap
-} from "@srouter/translator";
-import { modelSupportsToolCalling } from "@srouter/pricing";
+} from "@codex/translator";
+import { modelSupportsToolCalling } from "@codex/pricing";
 import type {
     ChatCompletionChunk,
     ChatCompletionRequest,
@@ -19,7 +19,7 @@ import type {
     FallbackRule,
     ToolCall,
     UsageInfo
-} from "@srouter/types";
+} from "@codex/types";
 import { registry } from "@/services/registry.js";
 import { ensureFreshToken } from "@/services/tokenRefresh.js";
 import { executeInterceptedSearch, shouldInterceptToolCall } from "@/services/toolInterceptor.js";

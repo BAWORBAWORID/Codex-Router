@@ -9,7 +9,7 @@ import type {
     AnthropicMessageRequest,
     ChatCompletionChunk,
     ChatCompletionResponse
-} from "@srouter/types";
+} from "@codex/types";
 
 test("anthropicToOpenAIRequest maps system string, messages, and tools", () => {
     const req: AnthropicMessageRequest = {

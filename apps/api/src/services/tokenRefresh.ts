@@ -1,6 +1,6 @@
-import { providerTypeForAlias } from "@srouter/constants";
-import { getAllProvidersDB, updateProviderTokensDB, getProviderByIdDB } from "@srouter/db";
-import type { AIProvider, ProviderConfig } from "@srouter/types";
+import { providerTypeForAlias } from "@codex/constants";
+import { getAllProvidersDB, updateProviderTokensDB, getProviderByIdDB } from "@codex/db";
+import type { AIProvider, ProviderConfig } from "@codex/types";
 import { authProviderHandlers } from "@/services/authHandlers.js";
 import { registry } from "./registry.js";
 

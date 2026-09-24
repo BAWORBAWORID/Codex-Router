@@ -1,4 +1,4 @@
-import { TABITOKEN_BASE_URL } from "@srouter/constants";
+import { TABITOKEN_BASE_URL } from "@codex/constants";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 export interface TabiTokenExecutorOptions extends OpenAIExecutorOptions {}

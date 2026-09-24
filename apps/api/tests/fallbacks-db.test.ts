@@ -7,7 +7,7 @@ import {
     getAllFallbackRulesDB,
     getFallbackRuleByIdDB,
     updateFallbackRuleDB
-} from "@srouter/db";
+} from "@codex/db";
 
 const createdRuleIds: string[] = [];
 

@@ -1,4 +1,4 @@
-import type { ModelObject } from "@srouter/types";
+import type { ModelObject } from "@codex/types";
 
 export function providerFor(model: ModelObject): string {
     return model.owned_by ?? model.id.split("/")[0] ?? "ZyvorAI";

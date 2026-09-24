@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Loader2, Copy, Check, X, Key, Globe, ExternalLink } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { AuthPollStatus, type ProviderConfig, type ProviderDefinition } from "@srouter/types";
+import { AuthPollStatus, type ProviderConfig, type ProviderDefinition } from "@codex/types";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface ConnectOAuthModalProps {
