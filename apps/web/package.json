@@ -1,6 +1,6 @@
 {
     "name": "web",
-    "version": "0.1.4",
+    "version": "1.0.5-rc.1",
     "type": "module",
     "private": true,
     "repository": {

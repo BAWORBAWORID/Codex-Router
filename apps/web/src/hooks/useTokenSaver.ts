@@ -26,6 +26,11 @@ export const DEFAULT_TOKEN_SAVER_SETTINGS: TokenSaverSettings = {
         enabled: true,
         mode: "terse",
         stripPleasantries: true
+    },
+    trimMessages: {
+        enabled: true,
+        maxInputTokens: 8192,
+        preserveTailMessages: 4
     }
 };
 
