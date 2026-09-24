@@ -40,7 +40,7 @@ WORKDIR /app
 FROM base AS deps
 
 # Copy package files first for better layer caching
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 COPY packages/constants/package.json ./packages/constants/
@@ -51,8 +51,8 @@ COPY packages/providers/package.json ./packages/providers/
 COPY packages/translator/package.json ./packages/translator/
 COPY packages/types/package.json ./packages/types/
 
-# Install dependencies using npm (workspaces are defined in package.json)
-RUN npm install
+# Install dependencies using pnpm (workspace:* protocol requires pnpm)
+RUN pnpm install --frozen-lockfile
 
 # =============================================================================
 # Builder Stage - Build all packages and applications
@@ -110,7 +110,7 @@ FROM deps AS development
 WORKDIR /app
 
 # Expose both API and Web ports for development
-EXPOSE 3000 1455 4000
+EXPOSE 4000 1455
 
 # Default to development command
 CMD ["pnpm", "run", "dev"]
