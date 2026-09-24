@@ -85,7 +85,16 @@ function CatalogWithSavedProviders(): ProviderDefinition[] {
     const Catalog: ProviderDefinition[] = [];
     const Seen = new Set<string>();
 
-    for (const Connection of Rows) {
+    // Separate OAuth providers (category === "oauth") from others.
+    // OAuth providers (Antigravity, OpenAI Codex OAuth, etc.) should be shown
+    // individually at /providers/antigravity_XXX and /providers/openai_codex_XXX
+    // so they don't get grouped under BaseIdOf with other providers.
+    const oauthRows = Rows.filter((C) => C.category === "oauth");
+    const otherRows = Rows.filter((C) => C.category !== "oauth");
+
+    // Process non-OAuth providers using BaseIdOf grouping
+    // This groups them by provider type (openai, anthropic, etc.)
+    for (const Connection of otherRows) {
         const BaseId = BaseIdOf(Connection.providerId || Connection.id);
         if (Seen.has(BaseId)) continue;
         Seen.add(BaseId);
@@ -122,6 +131,7 @@ function CatalogWithSavedProviders(): ProviderDefinition[] {
         });
     }
 
+    // Add remaining seed providers not already in catalog
     for (const Seed of Object.values(DEFAULT_PROVIDER_MAP)) {
         if (Seen.has(Seed.id)) continue;
         Seen.add(Seed.id);
@@ -149,7 +159,10 @@ function CatalogWithSavedProviders(): ProviderDefinition[] {
 
 export class ProvidersLogic {
     public static ListProviders(): ProviderDefinition[] {
-        return CatalogWithSavedProviders();
+        const Catalog = CatalogWithSavedProviders();
+        // Filter out OAuth providers (individual accounts like Antigravity, OpenAI Codex OAuth)
+        // so /providers shows only categorized providers (openai, anthropic, etc.)
+        return Catalog.filter((P) => P.category !== "oauth");
     }
 
     public static GetCatalog(): CatalogSummary {
