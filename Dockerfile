@@ -121,3 +121,5 @@ EXPOSE 4000 1455
 
 # Default to development command
 CMD ["pnpm", "run", "dev"]
+
+FROM production AS default
