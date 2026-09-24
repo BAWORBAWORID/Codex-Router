@@ -58,6 +58,25 @@ function BaseIdOf(ProviderId: string): string {
     return ProviderId;
 }
 
+export function mergeProviderModels(
+    ProviderId: string,
+    LiveModels: ModelObject[],
+    CustomModels: ModelObject[]
+): ModelObject[] {
+    const Prefix = `${providerAlias(BaseIdOf(ProviderId)).toLowerCase()}/`;
+    const Merged = new Map<string, ModelObject>();
+
+    for (const Model of [...LiveModels, ...CustomModels]) {
+        const NormalizedId = Model.id.trim().toLowerCase();
+        const Key = NormalizedId.startsWith(Prefix)
+            ? NormalizedId.slice(Prefix.length)
+            : NormalizedId;
+        if (!Merged.has(Key)) Merged.set(Key, Model);
+    }
+
+    return Array.from(Merged.values());
+}
+
 function ProviderDefinitionFromConfig(Connection: ProviderConfig): ProviderDefinition {
     const Category: ProviderCategory =
         Connection.category && isProviderCategory(Connection.category)
@@ -131,10 +150,13 @@ function CatalogWithSavedProviders(): ProviderDefinition[] {
         });
     }
 
-    // Add remaining seed providers not already in catalog
     for (const Seed of Object.values(DEFAULT_PROVIDER_MAP)) {
         if (Seen.has(Seed.id)) continue;
         Seen.add(Seed.id);
+
+        const ConnectedCount = Rows.filter(
+            (C) => !isSeedProvider(C) && C.enabled && BaseIdOf(C.providerId || C.id) === Seed.id
+        ).length;
 
         Catalog.push({
             id: Seed.id,
@@ -146,9 +168,9 @@ function CatalogWithSavedProviders(): ProviderDefinition[] {
             requires_oauth: Seed.requires_oauth,
             supports_custom_url: Seed.supports_custom_url ?? true,
             status: {
-                state: "no_connections",
+                state: ConnectedCount > 0 ? "connected" : "no_connections",
                 message: Seed.status_message,
-                connectedCount: 0
+                connectedCount: ConnectedCount
             },
             models: []
         });
@@ -191,7 +213,7 @@ export class ProvidersLogic {
         );
         const ConnectedCount = Connections.filter((C) => C.enabled).length;
 
-        let LiveModels = Provider.models;
+        let LiveModels = mergeProviderModels(ProviderId, Provider.models, []);
         const MatchingProviders = Array.from(registry.getAllProviders().values()).filter(
             (P) =>
                 P.id === ProviderId ||
@@ -199,35 +221,15 @@ export class ProvidersLogic {
                 P.id.startsWith(`${ProviderId}-`)
         );
 
-        if (MatchingProviders.length > 0) {
-            const ModelMap = new Map<string, ModelObject>();
-            for (const M of Provider.models) {
-                ModelMap.set(M.id, M);
-            }
-            for (const P of MatchingProviders) {
-                try {
-                    const Fetched = await registry.getProviderModels(P);
-                    for (const M of Fetched) {
-                        ModelMap.set(M.id, M);
-                    }
-                } catch {}
-            }
-            if (ModelMap.size > 0) {
-                LiveModels = Array.from(ModelMap.values());
-            }
+        for (const P of MatchingProviders) {
+            try {
+                const Fetched = await registry.getProviderModels(P);
+                LiveModels = mergeProviderModels(ProviderId, LiveModels, Fetched);
+            } catch {}
         }
 
         const CustomModels = ProvidersLogic.ListCustomModels(ProviderId);
-        if (CustomModels.length > 0) {
-            const Merged = new Map<string, ModelObject>();
-            for (const M of LiveModels) {
-                Merged.set(M.id.toLowerCase(), M);
-            }
-            for (const M of CustomModels) {
-                Merged.set(M.id.toLowerCase(), M);
-            }
-            LiveModels = Array.from(Merged.values());
-        }
+        LiveModels = mergeProviderModels(ProviderId, LiveModels, CustomModels);
 
         return {
             ...Provider,

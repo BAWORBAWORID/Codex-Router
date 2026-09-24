@@ -11,7 +11,7 @@ import type { ProviderConfig } from "@codex/types";
 import { AuthLogic } from "../src/logic/auth.logic.js";
 import { AuthHandlers } from "../src/services/authHandlers.js";
 import { CodeBuddyCNOAuth } from "@codex/providers";
-import { ProvidersLogic } from "../src/logic/providers.logic.js";
+import { ProvidersLogic, mergeProviderModels } from "../src/logic/providers.logic.js";
 
 const createdIds: string[] = [];
 const originalFetch = globalThis.fetch;
@@ -101,7 +101,7 @@ test("CodeBuddy CN token import creates a CN provider connection", () => {
 });
 
 test("CodeBuddy CN connections stay grouped under the CN catalog entry", () => {
-    const before = ProvidersLogic.ListProviders();
+    const before = ProvidersLogic.GetCatalog().categories.oauth;
     const cnBefore =
         before.find((provider) => provider.id === "codebuddy-cn")?.status.connectedCount ?? 0;
     const globalBefore =
@@ -112,12 +112,54 @@ test("CodeBuddy CN connections stay grouped under the CN catalog entry", () => {
     });
     createdIds.push(config.id);
 
-    const catalog = ProvidersLogic.ListProviders();
+    const catalog = ProvidersLogic.GetCatalog().categories.oauth;
     const global = catalog.find((provider) => provider.id === "codebuddy");
     const cn = catalog.find((provider) => provider.id === "codebuddy-cn");
 
     assert.equal(cn?.status.connectedCount, cnBefore + 1);
     assert.equal(global?.status.connectedCount, globalBefore);
+});
+
+test("OAuth catalog status reflects enabled connections", () => {
+    const before = ProvidersLogic.GetCatalog().categories.oauth.find(
+        (provider) => provider.id === "antigravity"
+    )?.status.connectedCount ?? 0;
+    const id = `antigravity_catalog_test_${Date.now()}`;
+    createdIds.push(id);
+
+    upsertProviderDB({
+        id,
+        providerId: "antigravity",
+        name: "Antigravity Catalog Test",
+        category: "oauth",
+        protocol: "openai",
+        accessToken: "fixture-token",
+        enabled: true,
+        createdAt: Date.now()
+    });
+
+    const provider = ProvidersLogic.GetCatalog().categories.oauth.find(
+        (entry) => entry.id === "antigravity"
+    );
+
+    assert.equal(provider?.status.connectedCount, before + 1);
+    assert.equal(provider?.status.state, "connected");
+});
+
+test("provider model merge removes prefixed duplicates", () => {
+    const models = mergeProviderModels(
+        "openai_codex",
+        [
+            { id: "gpt-5.5", object: "model", owned_by: "openai_codex" },
+            { id: "codex-auto-review", object: "model", owned_by: "openai_codex" }
+        ],
+        [
+            { id: "openai/gpt-5.5", object: "model", owned_by: "openai", custom: true },
+            { id: "openai/codex-auto-review", object: "model", owned_by: "openai", custom: true }
+        ]
+    );
+
+    assert.deepEqual(models.map((model) => model.id), ["gpt-5.5", "codex-auto-review"]);
 });
 
 test("initiateCodeBuddyCNOAuth uses Tencent's CN auth endpoint", async () => {
