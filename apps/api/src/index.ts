@@ -161,7 +161,7 @@ serve(
         port
     },
     (info) => {
-        console.log(`🚀 SRouter Server running at http://localhost:${info.port}`);
+        console.log(`🚀 ZyvorRouter Server running at http://localhost:${info.port}`);
         if (hasWebDist) {
             console.log(`🌐 Web Dashboard & API live at http://localhost:${info.port}`);
         } else {

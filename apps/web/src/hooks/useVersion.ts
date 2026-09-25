@@ -26,9 +26,13 @@ export interface VersionInfo {
     lastChecked: Date | null;
 }
 
+function normalizeVersion(version: string): string {
+    return version.trim().replace(/^v/i, "");
+}
+
 export function compareVersions(v1: string, v2: string): number {
-    const clean1 = v1.replace(/^v/, "").trim();
-    const clean2 = v2.replace(/^v/, "").trim();
+    const clean1 = normalizeVersion(v1);
+    const clean2 = normalizeVersion(v2);
 
     if (clean1 === clean2) return 0;
 
@@ -72,15 +76,22 @@ async function fetchLatestGitHubTag(): Promise<string | null> {
             return null;
         }
 
-        // Find the newest version tag
-        let highest = tags[0].name;
-        for (let i = 1; i < tags.length; i++) {
-            if (compareVersions(tags[i].name, highest) > 0) {
-                highest = tags[i].name;
+        const candidates = tags
+            .map((tag) => ({ name: tag.name, normalized: normalizeVersion(tag.name) }))
+            .filter(({ normalized }) =>
+                /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(normalized)
+            );
+
+        if (candidates.length === 0) return null;
+
+        let highest = candidates[0];
+        for (let i = 1; i < candidates.length; i++) {
+            if (compareVersions(candidates[i].normalized, highest.normalized) > 0) {
+                highest = candidates[i];
             }
         }
 
-        return highest;
+        return highest.name;
     } catch {
         return null;
     }
