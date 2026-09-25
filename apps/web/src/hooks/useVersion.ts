@@ -107,8 +107,10 @@ export function useVersion(): VersionInfo & { refetch: () => void } {
     } = useQuery({
         queryKey: ["github_latest_version", GITHUB_REPO],
         queryFn: fetchLatestGitHubTag,
-        staleTime: 10 * 60 * 1000, // 10 minutes cache
-        refetchOnWindowFocus: false
+        staleTime: 10 * 60 * 1000,
+        refetchInterval: 10 * 60 * 1000,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true
     });
 
     const hasUpdate = Boolean(latestTag && compareVersions(latestTag, CURRENT_VERSION) > 0);

@@ -66,7 +66,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
 
     const handleCopyUpdateCommand = async () => {
         try {
-            await navigator.clipboard.writeText("git pull origin main && pnpm install");
+            await navigator.clipboard.writeText("git pull origin master && pnpm install --frozen-lockfile && pnpm run build");
             setCopiedCommand(true);
             toast.success("Update command copied to clipboard");
             setTimeout(() => setCopiedCommand(false), 2000);
@@ -206,7 +206,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                             rel="noreferrer"
                             className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500 text-black px-3 py-1.5 text-xs font-bold hover:bg-amber-400 transition-colors shadow-2xs self-start sm:self-auto shrink-0"
                         >
-                            <span>View Release</span>
+                            <span>Update</span>
                             <ExternalLink className="size-3" />
                         </a>
                     </div>
@@ -214,7 +214,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                     <div className="rounded-lg bg-background/80 border border-border/70 p-2.5 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0 font-mono text-[11px] text-foreground overflow-x-auto">
                             <Terminal className="size-3.5 text-muted-foreground shrink-0" />
-                            <code>git pull origin main && pnpm install</code>
+                            <code>git pull origin master && pnpm install --frozen-lockfile && pnpm run build</code>
                         </div>
                         <button
                             type="button"
@@ -226,7 +226,7 @@ export function SystemSettings({ apiBase }: SystemSettingsProps) {
                             ) : (
                                 <Copy className="size-3" />
                             )}
-                            <span>{copiedCommand ? "Copied" : "Copy"}</span>
+                            <span>{copiedCommand ? "Copied" : "Copy Update Command"}</span>
                         </button>
                     </div>
                 </div>
