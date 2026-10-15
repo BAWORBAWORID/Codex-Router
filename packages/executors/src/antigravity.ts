@@ -1,6 +1,5 @@
 import {
     ANTIGRAVITY_BASE_URL,
-    ANTIGRAVITY_BROWSER_USER_AGENT,
     ANTIGRAVITY_IDE_BASE_URL,
     ANTIGRAVITY_MODELS
 } from "@codex/constants";
@@ -59,8 +58,23 @@ export interface AntigravityExecutorOptions {
  * - Output token cap clamping (prevents 400 on oversized max_tokens)
  * - Zero-width character stripping and textual tool call parsing
  * - Falls back to OpenAI-compatible endpoint for local proxy / AIzaSy API keys
+ * - Model list is health-checked against upstream; retired models are hidden
  * ============================================================================
  */
+
+const MODEL_HEALTH_TTL_MS = 30 * 60 * 1000;
+const MODEL_PROBE_CONCURRENCY = 4;
+const MODEL_PROBE_TIMEOUT_MS = 20_000;
+const RETIREMENT_NOTICE = /is no longer available|no longer supported|has been retired/i;
+
+/**
+ * Retirement is a property of the upstream model, not of the credential, so
+ * every Antigravity connection shares one probe result. Per-instance caching
+ * meant N accounts x N models probes on each refresh, which starved the model
+ * snapshot of every other provider.
+ */
+let modelHealth: { checkedAt: number; ids: string[] } | undefined;
+
 export class AntigravityExecutor implements AIProvider {
     id: string;
     name: string;
@@ -76,7 +90,6 @@ export class AntigravityExecutor implements AIProvider {
     private creditsMode: "never" | "on_demand" | "always";
     private remainingCredits?: Array<{ creditType: string; creditAmount: string }>;
     private openaiFallback: OpenAIExecutor;
-    private usesBrowserUserAgent = false;
     private projectIdResolved = false;
 
     constructor(options: AntigravityExecutorOptions = {}) {
@@ -117,7 +130,7 @@ export class AntigravityExecutor implements AIProvider {
     private getHeaders(extra?: Record<string, string>): Record<string, string> {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
-            "User-Agent": this.usesBrowserUserAgent ? ANTIGRAVITY_BROWSER_USER_AGENT : ANTIGRAVITY_IDE_USER_AGENT
+            "User-Agent": ANTIGRAVITY_IDE_USER_AGENT
         };
         const token = this.accessToken || this.apiKey;
         if (token) {
@@ -162,8 +175,9 @@ export class AntigravityExecutor implements AIProvider {
 
         // 2. Return the official Antigravity exposed models
         if (token) {
-            return ANTIGRAVITY_MODELS.map((m) => ({
-                id: m.id,
+            const healthy = await this.liveModelIds();
+            return healthy.map((id) => ({
+                id,
                 object: "model" as const,
                 created: Math.floor(Date.now() / 1000),
                 owned_by: "antigravity"
@@ -171,6 +185,63 @@ export class AntigravityExecutor implements AIProvider {
         }
 
         return [];
+    }
+
+    /**
+     * Probe each catalogued model and drop the ones upstream retired. Google
+     * retires Gemini tiers without touching fetchAvailableModels, and the only
+     * signal is the call itself: a 404, or a 200 whose body is a retirement
+     * notice. Quota (429) and account-level 403 are not retirement, so those
+     * models stay listed — dropping them would hide a working model every time
+     * one account is throttled.
+     */
+    private async liveModelIds(): Promise<string[]> {
+        const now = Date.now();
+        if (modelHealth && now - modelHealth.checkedAt < MODEL_HEALTH_TTL_MS) {
+            return modelHealth.ids;
+        }
+
+        const candidates = ANTIGRAVITY_MODELS.map((m) => m.id);
+        const results: string[] = [];
+        const queue = [...candidates];
+
+        const worker = async () => {
+            while (queue.length > 0) {
+                const id = queue.shift();
+                if (id === undefined) return;
+                if (await this.isModelLive(id)) results.push(id);
+            }
+        };
+
+        await Promise.all(Array.from({ length: MODEL_PROBE_CONCURRENCY }, worker));
+
+        // A total outage (license, network) must not empty the catalog.
+        const ids = results.length > 0 ? results : candidates;
+        modelHealth = { checkedAt: now, ids };
+        return ids;
+    }
+
+    private async isModelLive(publicId: string): Promise<boolean> {
+        try {
+            const { url, body } = this.buildRequest(
+                publicId,
+                { model: publicId, messages: [{ role: "user", content: "ping" }], max_tokens: 1 },
+                false
+            );
+            const res = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(body),
+                signal: AbortSignal.timeout(MODEL_PROBE_TIMEOUT_MS)
+            });
+            const text = await res.text();
+            if (res.status === 404) return false;
+            if (res.status === 200) return !RETIREMENT_NOTICE.test(text);
+            return true;
+        } catch {
+            // Probe failed to run at all — keep the model rather than hide it.
+            return true;
+        }
     }
 
     private getAntigravityBaseUrl(): string {
@@ -196,7 +267,6 @@ export class AntigravityExecutor implements AIProvider {
     ): { url: string; body: Record<string, unknown> } {
         const cleanBaseUrl = this.getAntigravityBaseUrl();
         const modelName = parseAntigravityModelName(model);
-        this.usesBrowserUserAgent = modelName === "gemini-3.8-flash";
 
         // Build contents (with tool support, prompt stripping, zero-width stripping, trailing turn stripping)
         const contents = buildAntigravityContents(req);

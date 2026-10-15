@@ -43,7 +43,7 @@ pnpm install
 pnpm --filter api dev
 ```
 
-The API listens on `http://localhost:3000` by default.
+The API listens on `http://localhost:4000` by default.
 
 Useful root-level commands:
 
@@ -91,7 +91,7 @@ The app reads these gateway-level environment variables:
 
 | Variable        | Default         | Description             |
 | --------------- | --------------- | ----------------------- |
-| `PORT`          | `3000`          | HTTP server port        |
+| `PORT`          | `4000`          | HTTP server port        |
 | `OAUTH_PORT`    | `1455`          | OAuth callback listener |
 | `DATABASE_PATH` | `srouter.db`    | SQLite database path    |
 | `NODE_ENV`      | `development`   | Runtime environment     |

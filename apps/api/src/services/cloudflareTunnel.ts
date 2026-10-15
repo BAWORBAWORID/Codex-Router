@@ -59,7 +59,7 @@ let tunnelDesired = false;
 let tunnelStopping = false;
 let restartAttempts = 0;
 let restartTimer: ReturnType<typeof setTimeout> | null = null;
-let lastTunnelPort = 3000;
+let lastTunnelPort = 4000;
 
 function clearRestartTimer(): void {
     if (restartTimer) {
@@ -412,7 +412,7 @@ export function startTunnel(options: { port?: number; token?: string; domain?: s
     }
 
     const token = (options.token ?? getTunnelToken()).trim();
-    const port = options.port ?? 3000;
+    const port = options.port ?? 4000;
 
     const cloudflared = resolveCloudflared();
     if (!cloudflared) {

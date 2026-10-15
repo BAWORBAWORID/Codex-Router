@@ -40,11 +40,11 @@ pnpm --filter web dev
 
 Open `http://localhost:5173`.
 
-During development, Vite proxies these paths to the API at `http://localhost:3000`:
+During development, Vite proxies these paths to the API at `http://localhost:4000`:
 
 ```text
-/v1     → http://localhost:3000
-/health → http://localhost:3000
+/v1     → http://localhost:4000
+/health → http://localhost:4000
 ```
 
 For the normal full-stack workflow, use:

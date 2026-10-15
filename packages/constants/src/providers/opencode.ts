@@ -7,12 +7,14 @@ export interface OpenCodeZenModelDefinition {
     name: string;
 }
 
+/**
+ * Fallback catalog for when https://opencode.ai/zen/v1/models is unreachable.
+ * Upstream serves the full catalog anonymously, so this only pins what a live
+ * sweep found usable without a Zen API key: every other community model either
+ * returned FreeTierError ("only from within OpenCode") or an upstream failure.
+ */
 export const OPENCODE_ZEN_MODELS: OpenCodeZenModelDefinition[] = [
-    { id: "big-pickle", name: "Big Pickle (Free)" },
-    { id: "laguna-s-2.1-free", name: "Poolside Laguna S 2.1 (Free)" },
-    { id: "nemotron-3.5-lightning-free", name: "Nemotron 3.5 Lightning (Free)" },
-    { id: "nemotron-3-ultra-free", name: "Nemotron 3 Ultra (Free)" },
-    { id: "mimo-v2.5-free", name: "Xiaomi MiMo V2.5 (Free)" }
+    { id: "space-bunny-free", name: "Space Bunny (Free)" }
 ];
 
 export const OPENCODE_ZEN_MODEL_IDS: string[] = OPENCODE_ZEN_MODELS.map((m) => m.id);
@@ -28,5 +30,5 @@ export const OPENCODE_ZEN_PROVIDER: ProviderMetadata = {
     requires_api_key: false,
     requires_oauth: false,
     supports_custom_url: true,
-    status_message: "Free Tier Ready (Unlimited)"
+    status_message: "Community models work keyless; paid models need an OpenCode Zen API key"
 };

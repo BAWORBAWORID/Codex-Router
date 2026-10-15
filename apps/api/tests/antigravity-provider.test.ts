@@ -36,7 +36,7 @@ test("saved Antigravity connections initialize AntigravityExecutor and list mode
     assert.ok(instance, "expected a registered Antigravity executor");
     const models = await instance.listModels();
     assert.ok(models.length > 0);
-    assert.ok(models.some((m) => m.id === "gemini-3.7-flash-high"));
+    assert.ok(models.some((m) => m.id === "gemini-3.8-flash"));
 });
 
 test("initiateAntigravityOAuth generates valid Antigravity authorization parameters", () => {

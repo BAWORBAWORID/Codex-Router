@@ -114,7 +114,7 @@ test("cleanJSONSchemaForAntigravity fills missing array items", () => {
 
 test("buildAntigravityTools emits array items for every declaration", () => {
     const req: ChatCompletionRequest = {
-        model: "antigravity/gemini-3.7-flash-high",
+        model: "antigravity/gemini-3.6-flash-high",
         messages: [{ role: "user", content: "hi" }],
         tools: [
             {
@@ -141,12 +141,7 @@ test("buildAntigravityTools emits array items for every declaration", () => {
 });
 
 test("parseAntigravityModelName maps public ids to CloudCode internal ids", () => {
-    assert.equal(
-        parseAntigravityModelName("antigravity/gemini-3.7-flash-high"),
-        "gemini-3.7-flash-tiered"
-    );
-    assert.equal(parseAntigravityModelName("gemini-3.7-flash-medium"), "gemini-3.7-flash-tiered");
-    assert.equal(parseAntigravityModelName("gemini-3.7-flash-low"), "gemini-3.7-flash-tiered");
+    assert.equal(parseAntigravityModelName("antigravity/gemini-3.8-flash"), "gemini-3.8-flash-tiered");
     assert.equal(parseAntigravityModelName("gemini-3.5-flash-high"), "gemini-3-flash-agent");
     assert.equal(parseAntigravityModelName("gemini-3.1-pro-high"), "gemini-pro-agent");
     assert.equal(parseAntigravityModelName("gemini-3.5-flash-medium"), "gemini-3.5-flash-low");
@@ -156,6 +151,10 @@ test("parseAntigravityModelName maps public ids to CloudCode internal ids", () =
         parseAntigravityModelName("antigravity/gemini-3.6-flash-high"),
         "gemini-3.6-flash-high"
     );
+    assert.equal(parseAntigravityModelName("gemini-3-flash"), "gemini-3-flash");
+    assert.equal(parseAntigravityModelName("gemini-2.5-pro"), "gemini-2.5-pro");
+    assert.equal(parseAntigravityModelName("gemini-3.1-flash-lite"), "gemini-3.1-flash-lite");
+    assert.equal(parseAntigravityModelName("claude-sonnet-4-6"), "claude-sonnet-4-6");
 });
 
 test("stripCompetitiveAgentPrompts removes Claude / Anthropic identity sentences", () => {
@@ -194,7 +193,7 @@ test("parseAntigravityTextualToolCall parses markdown tool call", () => {
 });
 
 test("resolveAntigravityOutputCap and getAntigravityModelFallbacks work correctly", () => {
-    assert.equal(resolveAntigravityOutputCap("gemini-3.7-flash-high"), 65536);
+    assert.equal(resolveAntigravityOutputCap("gemini-3.6-flash-high"), 65536);
     assert.equal(resolveAntigravityOutputCap("claude-opus-4-6-thinking"), 64000);
     assert.equal(resolveAntigravityOutputCap("unknown-model"), 8192);
 
@@ -218,7 +217,7 @@ test("parseRetryFromErrorMessage extracts duration from Google error messages", 
 test("buildAntigravityEnvelope supports enabledCreditTypes", () => {
     const env = buildAntigravityEnvelope({
         projectId: "test-proj",
-        model: "gemini-3.7-flash-tiered",
+        model: "gemini-3.6-flash-high",
         requestType: "agent",
         request: { contents: [] },
         enabledCreditTypes: ["GOOGLE_ONE_AI"]
@@ -229,7 +228,7 @@ test("buildAntigravityEnvelope supports enabledCreditTypes", () => {
 
 test("buildAntigravityContents injects skip_thought_signature_validator when missing", () => {
     const req: ChatCompletionRequest = {
-        model: "antigravity/gemini-3.7-flash-high",
+        model: "antigravity/gemini-3.6-flash-high",
         messages: [
             { role: "user", content: "List files" },
             {
@@ -264,7 +263,7 @@ test("buildAntigravityContents injects skip_thought_signature_validator when mis
 
 test("buildAntigravityContents preserves existing thoughtSignature", () => {
     const req: ChatCompletionRequest = {
-        model: "antigravity/gemini-3.7-flash-high",
+        model: "antigravity/gemini-3.6-flash-high",
         messages: [
             { role: "user", content: "Run bash" },
             {
@@ -297,7 +296,7 @@ test("buildAntigravityContents preserves existing thoughtSignature", () => {
 });
 
 test("geminiStreamToOpenAIChunks propagates thoughtSignature in tool calls", () => {
-    const state = createGeminiStreamState("gemini-3.7-flash-high");
+    const state = createGeminiStreamState("gemini-3.6-flash-high");
     const rawChunk = {
         response: {
             candidates: [
@@ -348,7 +347,7 @@ test("geminiToOpenAIResponse and geminiStreamToOpenAIChunks map cachedContentTok
         }
     };
 
-    const res = geminiToOpenAIResponse(rawResponse, "gemini-3.7-flash");
+    const res = geminiToOpenAIResponse(rawResponse, "gemini-3-flash");
     assert.equal(res.choices[0]?.message.content, "Hello with cache!");
     assert.deepEqual(res.usage, {
         prompt_tokens: 5000,
@@ -359,7 +358,7 @@ test("geminiToOpenAIResponse and geminiStreamToOpenAIChunks map cachedContentTok
         }
     });
 
-    const streamState = createGeminiStreamState("gemini-3.7-flash");
+    const streamState = createGeminiStreamState("gemini-3-flash");
     const streamChunks = geminiStreamToOpenAIChunks(rawResponse, streamState);
     assert.ok(streamChunks);
     const finalChunk = streamChunks.find((c) => c.usage);

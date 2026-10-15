@@ -77,7 +77,8 @@ export const AnthropicMessageRequestSchema = z.object({
         .optional(),
     thinking: z
         .object({
-            type: z.enum(["enabled", "disabled"]),
+            // Claude Code sends "adaptive" to let the model pick its own budget
+            type: z.enum(["enabled", "disabled", "adaptive"]),
             budget_tokens: z.number().int().positive().max(1_000_000).optional()
         })
         .optional()

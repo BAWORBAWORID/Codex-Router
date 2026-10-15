@@ -157,7 +157,7 @@ export function ComboList({
     }, [fallbacks, search, statusFilter]);
 
     const handleCopyCurl = (sourceModel: string) => {
-        const curlSnippet = `curl -X POST http://localhost:3000/v1/chat/completions \\
+        const curlSnippet = `curl -X POST http://localhost:4000/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{

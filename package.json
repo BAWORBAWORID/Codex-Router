@@ -1,6 +1,6 @@
 {
     "name": "Codex-Router",
-    "version": "1.0.5-rc.1",
+    "version": "1.0.5-rc.2",
     "description": "High-performance multi-provider AI Gateway and LLM proxy router built with Hono, TypeScript, and SQLite WAL",
     "author": "ZelApi",
     "license": "MIT",

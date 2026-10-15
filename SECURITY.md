@@ -107,7 +107,7 @@ When deploying ZyvorAI, follow these recommendations:
 
 ### Network Configuration
 
-1. **Firewall**: Only expose ports 3000 and 1455 if needed externally
+1. **Firewall**: Only expose ports 4000 and 1455 if needed externally
 2. **VPN/SSH**: For remote access, prefer VPN or SSH tunneling over public exposure
 3. **Cloudflare Tunnel**: Use the built-in tunnel for secure remote access without opening ports
 
@@ -135,7 +135,7 @@ To check for updates:
 npx @srouter/cli doctor
 
 # Via API
-curl http://localhost:3000/v1/settings | jq .version
+curl http://localhost:4000/v1/settings | jq .version
 ```
 
 ---

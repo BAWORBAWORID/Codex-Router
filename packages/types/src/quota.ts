@@ -20,7 +20,10 @@ export interface ProviderUsageMetric {
 
 export interface ProviderQuotaAccount {
     id: string;
+    /** Display label, e.g. "OpenAI Codex" or "CodeBuddy CN (Pro)". Not routable. */
     provider: string;
+    /** Driver id, e.g. "openai_codex". This is what /providers/$providerId expects. */
+    providerId: string;
     account: string;
     enabled: boolean;
     quotaType: "live_provider_quota" | "usage_logged";

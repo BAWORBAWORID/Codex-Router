@@ -26,7 +26,7 @@ interface CLIToolDef {
     name: string;
     description: string;
     icon: string;
-    image: string;
+    image?: string;
     color: string;
     configPaths: string[];
     installCmd: string;
@@ -52,6 +52,16 @@ const CLI_TOOLS: CLIToolDef[] = [
         color: "#D97757",
         configPaths: ["~/.claude/settings.json"],
         installCmd: "npm install -g @anthropic-ai/claude-code"
+    },
+    {
+        id: "openclaude",
+        name: "openclaude",
+        description: "Open-source coding agent CLI, works with any model",
+        icon: "oc",
+        color: "#C96442",
+        // gitlawb-aligned fork: reads the same settings layout as Claude Code
+        configPaths: ["~/.claude/settings.json"],
+        installCmd: "npm install -g @twigpine/openclaude@latest"
     },
     {
         id: "cursor",
@@ -127,6 +137,23 @@ function buildClaudeCodeConfig(baseUrl: string, apiKey: string, model: string) {
     };
 }
 
+/**
+ * openclaude speaks the OpenAI-compatible wire, so it only needs the base URL,
+ * key and model in env — CLAUDE_CODE_USE_OPENAI=1 is what forces that path.
+ */
+function buildOpenClaudeConfig(baseUrl: string, apiKey: string, model: string) {
+    return {
+        hasCompletedOnboarding: true,
+        env: {
+            CLAUDE_CODE_USE_OPENAI: "1",
+            OPENAI_API_KEY: apiKey,
+            OPENAI_BASE_URL: baseUrl,
+            OPENAI_MODEL: model
+        },
+        model
+    };
+}
+
 function buildClineConfig(baseUrl: string, apiKey: string, model: string) {
     const baseUrlNoV1 = baseUrl.replace(/\/v1\/?$/, "");
     return {
@@ -189,6 +216,7 @@ function getToolConfig(toolId: string, baseUrl: string, apiKey: string, model: s
     switch (toolId) {
         case "opencode": return buildOpenCodeConfig(baseUrl, apiKey, model);
         case "claude-code": return buildClaudeCodeConfig(baseUrl, apiKey, model);
+        case "openclaude": return buildOpenClaudeConfig(baseUrl, apiKey, model);
         case "cline": return buildClineConfig(baseUrl, apiKey, model);
         case "codex": return buildCodexConfig(baseUrl, apiKey, model);
         case "copilot": return buildCopilotConfig(baseUrl, apiKey, model);
@@ -515,10 +543,10 @@ export function CLIToolsCard() {
         if (import.meta.env.VITE_API_URL) { const b = (import.meta.env.VITE_API_URL as string).replace(/\/+$/, ""); return b.endsWith("/v1") ? b : `${b}/v1`; }
         if (typeof window !== "undefined") {
             const { hostname, protocol, port, origin } = window.location;
-            if (import.meta.env.DEV || port === "5173" || port === "5174") { const bp = (import.meta.env.VITE_BACKEND_PORT as string) || "3000"; return `${protocol}//${hostname}:${bp}/v1`; }
+            if (import.meta.env.DEV || port === "5173" || port === "5174") { const bp = (import.meta.env.VITE_BACKEND_PORT as string) || "4000"; return `${protocol}//${hostname}:${bp}/v1`; }
             return `${origin}/v1`;
         }
-        return "http://localhost:3000/v1";
+        return "http://localhost:4000/v1";
     })();
 
     const activeKey = keys.find((k) => k.key === selectedKey) ?? keys[0];

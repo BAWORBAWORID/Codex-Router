@@ -15,7 +15,7 @@ test("AntigravityExecutor lists official models with accessToken", async () => {
     });
     const models = await executor.listModels();
     assert.ok(models.length > 0);
-    const flashModel = models.find((m) => m.id === "gemini-3.7-flash-high");
+    const flashModel = models.find((m) => m.id === "gemini-3.8-flash");
     assert.ok(flashModel);
     assert.equal(flashModel.owned_by, "antigravity");
 });

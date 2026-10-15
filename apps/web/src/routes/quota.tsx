@@ -452,7 +452,7 @@ function QuotaPage() {
                                     >
                                         <div className="flex size-9 shrink-0 items-center justify-center rounded-[8px] border border-[var(--line)] bg-[var(--field)] p-1.5 shadow-2xs group-hover:border-[var(--line-strong)] transition-colors">
                                             <ProviderIcon
-                                                providerId={account.provider}
+                                                providerId={account.providerId}
                                                 className="size-5"
                                             />
                                         </div>
@@ -531,7 +531,7 @@ function QuotaPage() {
 
                                         <Link
                                             to="/providers/$providerId"
-                                            params={{ providerId: account.provider }}
+                                            params={{ providerId: account.providerId }}
                                             className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 transition-colors"
                                         >
                                             <span>Manage</span>

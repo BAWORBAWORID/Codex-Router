@@ -56,7 +56,8 @@ export interface AnthropicMessageRequest {
         disable_parallel_tool_use?: boolean;
     };
     thinking?: {
-        type: "enabled" | "disabled";
+        /** "adaptive" lets the model choose whether to think; treated like "enabled". */
+        type: "enabled" | "disabled" | "adaptive";
         budget_tokens?: number;
     };
 }

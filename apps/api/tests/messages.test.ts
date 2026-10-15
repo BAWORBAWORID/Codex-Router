@@ -234,3 +234,59 @@ test("POST /v1/messages streams Anthropic SSE events", async () => {
     assert.ok(sseText.includes("Chunk 1 "));
     assert.ok(sseText.includes("Chunk 2"));
 });
+
+test("POST /v1/messages accepts thinking.type adaptive like Claude Code sends", async () => {
+    const { registry } = await import("../src/services/registry.js");
+    const mockProvider: AIProvider = {
+        id: "anthropic_adaptive",
+        name: "Mock Adaptive Provider",
+        listModels: async () => [{ id: "claude-3-7-sonnet-20250219", object: "model" }],
+        chatCompletion: async (req: ChatCompletionRequest): Promise<ChatCompletionResponse> => {
+            return {
+                id: "chatcmpl-mock-adaptive",
+                object: "chat.completion",
+                created: 1786759000,
+                model: req.model,
+                choices: [
+                    {
+                        index: 0,
+                        message: {
+                            role: "assistant",
+                            content: "",
+                            reasoning_content: "thinking out loud"
+                        },
+                        finish_reason: "stop"
+                    }
+                ],
+                usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }
+            };
+        },
+        chatCompletionStream: async function* () {}
+    };
+    registry.registerProvider(mockProvider);
+
+    const res = await app.request("/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+            model: "claude-3-7-sonnet-20250219",
+            messages: [{ role: "user", content: "Hello" }],
+            max_tokens: 1024,
+            thinking: { type: "adaptive" },
+            stream: false
+        })
+    });
+
+    assert.equal(res.status, 200);
+    const data = (await res.json()) as {
+        content: Array<{ type: string; text?: string; thinking?: string }>;
+    };
+    // adaptive counts as thinking-on, so the reasoning block is surfaced
+    assert.ok(
+        data.content.some((b) => b.type === "thinking"),
+        "adaptive should emit a thinking block"
+    );
+
+    registry.unregisterProvider(mockProvider.id);
+    deleteLogsByProviderDB(mockProvider.id);
+});

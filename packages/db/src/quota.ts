@@ -96,6 +96,7 @@ export async function fetchAntigravityLiveQuota(
     return {
         id: providerId,
         provider: "Antigravity",
+        providerId: "antigravity",
         account: accountName,
         enabled,
         quotaType: "live_provider_quota",
@@ -249,6 +250,7 @@ export async function fetchCodeBuddyCNLiveQuota(
     return {
         id: providerId,
         provider: Plan ? `CodeBuddy CN (${Plan})` : "CodeBuddy CN",
+        providerId: "codebuddy-cn",
         account: accountName,
         enabled,
         quotaType: "live_provider_quota",
@@ -320,6 +322,7 @@ export async function getProviderQuotaAccount(p: {
     return {
         id: p.id,
         provider: ProviderName,
+        providerId: p.providerId || p.id,
         account: p.name || `${ProviderName} Account`,
         enabled: p.enabled,
         quotaType: "usage_logged",
