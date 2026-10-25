@@ -24,3 +24,10 @@ ChatRouter.post(
     EnforceModelAccess(),
     ChatController.CreateCompletion
 );
+ChatRouter.post("/responses", ApiKeyAuth, EnforceRateLimit, ChatController.CreateResponses);
+ChatRouter.post(
+    "/chat/completions/responses",
+    ApiKeyAuth,
+    EnforceRateLimit,
+    ChatController.CreateResponses
+);

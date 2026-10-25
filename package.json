@@ -33,18 +33,18 @@
         "packages/*"
     ],
     "scripts": {
-        "dev": "turbo run dev",
-        "dev:api": "turbo run dev --filter=api",
-        "dev:web": "turbo run dev --filter=web",
-        "start": "turbo run start",
-        "build": "turbo run build",
-        "build:api": "turbo run build --filter=api",
-        "build:web": "turbo run build --filter=web",
+        "dev": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run dev",
+        "dev:api": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run dev --filter=api",
+        "dev:web": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run dev --filter=web",
+        "start": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run start",
+        "build": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run build",
+        "build:api": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run build --filter=api",
+        "build:web": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run build --filter=web",
         "clean": "turbo clean",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "lint": "turbo run lint",
-        "test": "turbo run test"
+        "lint": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run lint",
+        "test": "node_modules/.pnpm/@turbo+linux-64@2.11.3/node_modules/@turbo/linux-64/bin/turbo run test"
     },
     "engines": {
         "node": ">=22.0.0"

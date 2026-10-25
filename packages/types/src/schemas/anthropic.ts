@@ -32,7 +32,7 @@ export const AnthropicMessageSchema = z.object({
 
 export const AnthropicToolSchema = z.object({
     name: z.string().min(1).max(300),
-    description: z.string().max(10_000).optional(),
+    description: z.string().optional(),
     input_schema: z
         .object({
             type: z.string().optional(),
