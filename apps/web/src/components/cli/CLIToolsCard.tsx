@@ -498,9 +498,9 @@ function ToolCard({
                                     <span key={p} className="rounded bg-surface/40 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">{p}</span>
                                 ))}
                             </div>
-                            <button type="button" onClick={() => void copy(configJson, `${tool.name} config copied`)} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
-                                {copied === configJson ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
-                                <span>{copied === configJson ? "Copied!" : "Copy"}</span>
+                            <button type="button" onClick={() => void copy(tool.configPaths.join("\n"), `${tool.name} path copied`)} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
+                                {copied === tool.configPaths.join("\n") ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
+                                <span>{copied === tool.configPaths.join("\n") ? "Copied!" : "Copy"}</span>
                             </button>
                         </div>
                         <pre className="rounded-lg border border-border/60 bg-black/5 dark:bg-white/5 p-3 overflow-x-auto text-xs leading-relaxed font-mono text-foreground max-h-48 overflow-y-auto">
