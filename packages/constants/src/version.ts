@@ -1,7 +1,7 @@
-export const GLOBAL_VERSION = "1.0.5-rc.2";
-export const APP_VERSION = "1.0.5-rc.2";
-export const API_VERSION = "1.0.5-rc.2";
-export const CLI_VERSION = "1.0.5-rc.2";
+export const GLOBAL_VERSION = "1.0.5-rc.3";
+export const APP_VERSION = "1.0.5-rc.3";
+export const API_VERSION = "1.0.5-rc.3";
+export const CLI_VERSION = "1.0.5-rc.3";
 
 // Backward-compat aliases
 export const SROUTER_VERSION = GLOBAL_VERSION;
