@@ -44,6 +44,21 @@ export function useProvider(providerId: string) {
         }
     });
 
+    const toggleRoundRobinMutation = useMutation({
+        mutationFn: (vars: { connectionId: string; enabled: boolean }) =>
+            api.patch<{ id: string; roundRobin: boolean }>(
+                `/v1/providers/connections/${vars.connectionId}/round-robin`,
+                { enabled: vars.enabled }
+            ),
+        onSuccess: (data) => {
+            void queryClient.invalidateQueries({ queryKey: ["providers", providerId] });
+            toast.success(`Round Robin ${data.roundRobin ? "diaktifkan" : "dimatikan"}`);
+        },
+        onError: (err: Error) => {
+            toast.error(err.message || "Failed to update round robin");
+        }
+    });
+
     const deleteMutation = useMutation({
         mutationFn: (connectionId: string) =>
             api.delete<{ message: string }>(`/v1/providers/${connectionId}`),
@@ -117,6 +132,7 @@ export function useProvider(providerId: string) {
         addModelMutation,
         deleteModelMutation,
         fetchModelsQuery,
-        importModelsMutation
+        importModelsMutation,
+        toggleRoundRobinMutation
     };
 }

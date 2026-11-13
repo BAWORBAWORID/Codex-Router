@@ -47,11 +47,15 @@ function ProviderDetailPage() {
         deleteModelMutation,
         fetchModelsQuery,
         importModelsMutation
-    } = useProvider(providerId);
+    , toggleRoundRobinMutation } = useProvider(providerId);
 
     const [modelSearch, setModelSearch] = useState("");
     const [viewMode, setViewMode] = useState<"table" | "grid">("table");
     const [roundRobin, setRoundRobin] = useState(false);
+    const providerConnections = provider.data?.connections ?? [];
+    const primaryConnection = providerConnections[0];
+    const roundRobinSaved = primaryConnection?.providerSpecificData?.roundRobin === "true";
+    const roundRobinValue = provider.isLoading ? false : roundRobinSaved;
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isOAuthModalOpen, setIsOAuthModalOpen] = useState(false);
     const [isAddModelOpen, setIsAddModelOpen] = useState(false);
@@ -341,9 +345,14 @@ function ProviderDetailPage() {
             <ConnectionCard
                 providerName={provider.name}
                 connections={connections}
-                roundRobin={roundRobin}
+                roundRobin={roundRobinValue}
                 isDeleting={deleteMutation.isPending}
-                onToggleRoundRobin={() => setRoundRobin(!roundRobin)}
+                onToggleRoundRobin={() => {
+                    if (!primaryConnection) return;
+                    const next = !roundRobinValue;
+                    setRoundRobin(next);
+                    toggleRoundRobinMutation.mutate({ connectionId: primaryConnection.id, enabled: next });
+                }}
                 onRefresh={() => void refetch()}
                 onAdd={handleAddConnection}
                 onDelete={(connectionId) =>

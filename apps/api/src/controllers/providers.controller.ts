@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import type { CreateProviderPayload } from "@/logic/providers.logic.js";
 import { ProvidersLogic } from "@/logic/providers.logic.js";
-import { deleteProviderDB } from "@codex/db";
+import { deleteProviderDB, updateProviderSpecificDataDB } from "@codex/db";
 import { AddCustomModelSchema, CreateProviderSchema, ImportModelsFromProviderSchema, VerifyProviderSchema } from "@codex/types";
 import { loadSavedProvidersFromDB, registry } from "@/services/registry.js";
 import { Err, Ok } from "@/utils/response.js";
@@ -121,6 +121,21 @@ export class ProvidersController {
         } catch (error) {
             return Err(c, error instanceof Error ? error.message : "Import failed", 400);
         }
+    }
+
+    public static async UpdateRoundRobin(c: Context): Promise<Response> {
+        const ConnectionId = c.req.param("connectionId");
+        const Body = (await c.req.json().catch(() => ({}))) as { enabled?: boolean };
+        if (typeof Body.enabled !== "boolean") {
+            return Err(c, "Field 'enabled' (boolean) is required", 400, { code: "validation_error" });
+        }
+        const Updated = updateProviderSpecificDataDB(ConnectionId, {
+            roundRobin: Body.enabled ? "true" : "false"
+        });
+        if (!Updated) {
+            return Err(c, "Connection not found", 404, { code: "not_found" });
+        }
+        return Ok(c, { id: Updated.id, roundRobin: Updated.providerSpecificData?.roundRobin === "true" });
     }
 
     public static async FetchProviderModels(c: Context): Promise<Response> {
