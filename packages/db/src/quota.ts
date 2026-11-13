@@ -70,7 +70,9 @@ export async function fetchAntigravityLiveQuota(
         throw new Error("Antigravity quota fetch returned no models");
     }
 
-    const Quotas: LiveModelQuotaItem[] = Object.entries(Data.models).map(([modelId, item]) => {
+    const Quotas: LiveModelQuotaItem[] = Object.entries(Data.models)
+        .filter(([modelId]) => !/^chat_\d+$/.test(modelId) && !/-disabled$/i.test(modelId) && !/_preview$/i.test(modelId))
+        .map(([modelId, item]) => {
         const RemainingFraction = item.quotaInfo?.remainingFraction ?? 1.0;
         const PercentageValue = Math.round(RemainingFraction * 100);
         const Limit = 1000;
