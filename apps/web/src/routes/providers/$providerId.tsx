@@ -52,10 +52,10 @@ function ProviderDetailPage() {
     const [modelSearch, setModelSearch] = useState("");
     const [viewMode, setViewMode] = useState<"table" | "grid">("table");
     const [roundRobin, setRoundRobin] = useState(false);
-    const providerConnections = provider.data?.connections ?? [];
+    const providerConnections = provider?.connections ?? [];
     const primaryConnection = providerConnections[0];
     const roundRobinSaved = primaryConnection?.providerSpecificData?.roundRobin === "true";
-    const roundRobinValue = provider.isLoading ? false : roundRobinSaved;
+    const roundRobinValue = roundRobinSaved;
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isOAuthModalOpen, setIsOAuthModalOpen] = useState(false);
     const [isAddModelOpen, setIsAddModelOpen] = useState(false);
