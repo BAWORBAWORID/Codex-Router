@@ -1,6 +1,6 @@
 {
     "name": "api",
-    "version": "1.0.5-rc.2",
+    "version": "1.0.5-rc.3",
     "type": "module",
     "repository": {
         "type": "git",
