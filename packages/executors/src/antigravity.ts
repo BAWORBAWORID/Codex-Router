@@ -362,7 +362,40 @@ export class AntigravityExecutor implements AIProvider {
         const tools = buildAntigravityTools(req);
         const maxCap = resolveAntigravityOutputCap(modelName);
         const requestedMaxTokens = typeof req.max_tokens === "number" ? req.max_tokens : undefined;
-        const maxOutputTokens = requestedMaxTokens ? Math.min(requestedMaxTokens, maxCap) : maxCap;
+        const isThinkingModel = /gemini-3\.[5-9]|-thinking|gemini-3\.8/i.test(modelName);
+
+        // Thinking models open answers with markdown (e.g. "**500**"); a small
+        // max_tokens truncates mid-answer ("**5"). Enforce a sane minimum so
+        // answers are never cut (upstream cap still applies).
+        const MIN_THINKING_OUTPUT_TOKENS = 512;
+        let effectiveRequested = requestedMaxTokens;
+        if (isThinkingModel && requestedMaxTokens !== undefined) {
+            effectiveRequested = Math.max(requestedMaxTokens, MIN_THINKING_OUTPUT_TOKENS);
+        }
+        const maxOutputTokens = effectiveRequested ? Math.min(effectiveRequested, maxCap) : maxCap;
+
+        // Map OpenAI reasoning_effort to Gemini thinkingConfig.thinkingBudget.
+        // Without this, thinking models (gemini-3.8-*) spend 30-100s reasoning
+        // server-side even for trivial questions.
+        const effort = (req as unknown as { reasoning_effort?: string }).reasoning_effort;
+        const thinkingConfig: Record<string, unknown> | undefined = isThinkingModel
+            ? (() => {
+                switch (effort) {
+                    case "none":
+                    case "minimal":
+                    case "off":
+                        return { thinkingBudget: 0 };
+                    case "low":
+                        return { thinkingBudget: 1024 };
+                    case "medium":
+                        return { thinkingBudget: 8192 };
+                    case "high":
+                        return { thinkingBudget: 24576 };
+                    default:
+                        return undefined; // user tidak set → default upstream
+                }
+            })()
+            : undefined;
 
         const request: Record<string, unknown> = {
             contents,
@@ -372,7 +405,8 @@ export class AntigravityExecutor implements AIProvider {
                 maxOutputTokens,
                 topP: typeof req.top_p === "number" ? req.top_p : 1.0,
                 topK: 40,
-                ...(typeof req.temperature === "number" && { temperature: req.temperature })
+                ...(typeof req.temperature === "number" && { temperature: req.temperature }),
+                ...(thinkingConfig && { thinkingConfig })
             }
         };
         if (tools.length > 0) {
