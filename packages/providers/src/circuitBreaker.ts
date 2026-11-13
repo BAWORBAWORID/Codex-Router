@@ -105,6 +105,12 @@ export class CircuitBreaker {
      * Filters candidate providers by health, prioritizing healthy ones.
      * If all candidates are in cooldown, returns candidate with nearest cooldown expiration.
      */
+    /**
+     * Round-robin index global: setiap pemanggilan dengan kandidat sehat >1
+     * memutar urutan awal, sehingga beban tersebar merata antar akun.
+     */
+    private rrCounter = 0;
+
     public sortCandidatesByHealth<T extends { id: string }>(candidates: T[]): T[] {
         if (candidates.length <= 1) return candidates;
 
@@ -123,6 +129,12 @@ export class CircuitBreaker {
         }
 
         if (available.length > 0) {
+            // Round-robin: putar urutan kandidat sehat agar tiap request
+            // memakai akun berbeda (bukan selalu kandidat pertama).
+            if (available.length > 1) {
+                const offset = this.rrCounter++ % available.length;
+                return [...available.slice(offset), ...available.slice(0, offset)];
+            }
             return available;
         }
 

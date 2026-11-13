@@ -27,6 +27,11 @@ ProvidersRouter.delete(
 );
 
 // Bulk import: fetch available models from provider + bulk add as custom
+ProvidersRouter.patch(
+    "/providers/connections/:connectionId/round-robin",
+    RequireAdmin,
+    ProvidersController.UpdateRoundRobin
+);
 ProvidersRouter.get(
     "/providers/:providerId/models/fetch",
     RequireAdmin,

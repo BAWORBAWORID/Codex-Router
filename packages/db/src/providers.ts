@@ -128,6 +128,20 @@ export function updateProviderTokensDB(input: UpdateProviderTokensInput): void {
     );
 }
 
+export function updateProviderSpecificDataDB(
+    id: string,
+    data: Record<string, string>
+): ProviderConfig | null {
+    const Existing = getProviderByIdDB(id);
+    if (!Existing) return null;
+    const Merged = { ...(Existing.providerSpecificData ?? {}), ...data };
+    db.prepare(`UPDATE providers SET provider_specific_data = ? WHERE id = ?`).run(
+        JSON.stringify(Merged),
+        id
+    );
+    return getProviderByIdDB(id);
+}
+
 export function getConnectionsByProviderIdDB(providerId: string): ProviderConfig[] {
     const PId = providerId.toLowerCase();
     const Query = db.prepare(
