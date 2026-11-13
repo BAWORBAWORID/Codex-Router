@@ -163,6 +163,32 @@ export class AntigravityExecutor implements AIProvider {
         return this.accessToken || this.apiKey;
     }
 
+    /**
+     * Fetch model list RESMI dari upstream (v1internal:fetchAvailableModels).
+     * Model yang muncul di sini tersedia untuk akun (terbuka). Model dalam katalog
+     * yang TIDAK muncul = terkunci (butuh Pro/Ultra / verify) — tetap ditampilkan
+     * dengan metadata locked agar UI bisa membedakan.
+     */
+    async fetchAvailableModels(): Promise<Record<string, { displayName?: string; quotaInfo?: { remainingFraction?: number } }>> {
+        const token = this.getToken();
+        if (!token) return {};
+        try {
+            const res = await fetch(`${this.getAntigravityBaseUrl()}/v1internal:fetchAvailableModels`, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify({}),
+                signal: AbortSignal.timeout(15000)
+            });
+            if (!res.ok) return {};
+            const data = (await res.json()) as {
+                models?: Record<string, { displayName?: string; quotaInfo?: { remainingFraction?: number } }>;
+            };
+            return data.models ?? {};
+        } catch {
+            return {};
+        }
+    }
+
     async listModels(): Promise<ModelObject[]> {
         const token = this.getToken();
         const isLocalProxy = this.isLocalProxy();
@@ -176,12 +202,44 @@ export class AntigravityExecutor implements AIProvider {
         // 2. Return the official Antigravity exposed models
         if (token) {
             const healthy = await this.liveModelIds();
-            return healthy.map((id) => ({
+            const models: ModelObject[] = healthy.map((id) => ({
                 id,
                 object: "model" as const,
                 created: Math.floor(Date.now() / 1000),
                 owned_by: "antigravity"
             }));
+
+            // Model baru dari upstream (fetchAvailableModels) yang belum ada di
+            // hasil probe: tambahkan agar "Fetch New Model" mendeteksi model baru.
+            const available = await this.fetchAvailableModels();
+            const known = new Set(models.map((m) => m.id));
+            for (const upstreamId of Object.keys(available)) {
+                const publicId = upstreamId.startsWith("models/") ? upstreamId.slice(7) : upstreamId;
+                if (!publicId || known.has(publicId)) continue;
+                // Sembunyikan id internal non-model (chat_XXXX) dan model yang
+                // Google tandai disabled/-hidden — tidak bisa dipakai & merusak list.
+                if (/^chat_\d+$/.test(publicId) || /-disabled$/i.test(publicId) || /_preview$/i.test(publicId)) continue;
+                known.add(publicId);
+                models.push({
+                    id: publicId,
+                    object: "model",
+                    created: Math.floor(Date.now() / 1000),
+                    owned_by: "antigravity"
+                });
+            }
+
+            // Tandai model katalog yang TIDAK tersedia untuk akun ini = terkunci
+            // (butuh Pro/Ultra / verify). Dikirim sebagai metadata supaya UI bisa
+            // menampilkan statusnya; model tetap di-list.
+            const availableKeys = new Set(
+                Object.keys(available).map((k) => (k.startsWith("models/") ? k.slice(7) : k))
+            );
+            for (const m of models) {
+                (m as ModelObject & { locked?: boolean }).locked =
+                    availableKeys.size > 0 && !availableKeys.has(m.id);
+            }
+
+            return models;
         }
 
         return [];

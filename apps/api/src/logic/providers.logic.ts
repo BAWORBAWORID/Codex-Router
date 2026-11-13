@@ -406,13 +406,17 @@ export class ProvidersLogic {
             }
         }
 
-        const deduped = new Map<string, ModelObject>();
+        const deduped = new Map<string, ModelObject & { locked?: boolean }>();
         for (const m of allModels) {
             const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
+            const locked = (m as ModelObject & { locked?: boolean }).locked;
+            const prev = deduped.get(bare.toLowerCase());
+            // locked=false menang: cukup satu akun yang membuka model
             deduped.set(bare.toLowerCase(), {
                 id: bare,
                 object: "model",
-                owned_by: providerAlias(ProviderId.toLowerCase())
+                owned_by: providerAlias(ProviderId.toLowerCase()),
+                locked: prev ? (prev.locked && Boolean(locked)) : Boolean(locked)
             });
         }
 

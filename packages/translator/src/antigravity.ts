@@ -179,8 +179,10 @@ export function geminiToOpenAIResponse(
  */
 
 // Official Antigravity IDE Desktop 2.1.1 fingerprint (macOS arm64)
-export const ANTIGRAVITY_IDE_VERSION = "2.1.1";
-export const ANTIGRAVITY_IDE_USER_AGENT = `antigravity/ide/${ANTIGRAVITY_IDE_VERSION} darwin/arm64`;
+export const ANTIGRAVITY_IDE_VERSION = "1.5.8";
+export const ANTIGRAVITY_IDE_USER_AGENT =
+    process.env.ANTIGRAVITY_UA ||
+    `antigravity/ide/${ANTIGRAVITY_IDE_VERSION} darwin/arm64`;
 
 export const MAX_ANTIGRAVITY_OUTPUT_TOKENS = 64000;
 
