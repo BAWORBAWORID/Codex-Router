@@ -127,6 +127,28 @@ export const AuthController = {
             )
     },
 
+    DeepAI: {
+        OAuth: (c: Context): Response =>
+            OAuthFor(
+                AuthHandlers.DeepAI,
+                (p) => AuthLogic.initiateProviderOAuth("deepai", p),
+                c,
+                true
+            ),
+        Callback: (c: Context): Promise<Response> =>
+            CallbackFor(
+                AuthHandlers.DeepAI,
+                (code, state) => AuthLogic.processProviderOAuthCallback("deepai", code, state),
+                c
+            ),
+        ImportToken: (c: Context): Promise<Response> =>
+            ImportTokenFor(
+                AuthHandlers.DeepAI,
+                (b) => AuthLogic.processProviderTokenImport("deepai", b),
+                c
+            )
+    },
+
     CommandCode: {
         ImportToken: (c: Context): Promise<Response> =>
             ImportTokenFor(

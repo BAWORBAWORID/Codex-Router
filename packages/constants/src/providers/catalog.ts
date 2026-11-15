@@ -3,6 +3,7 @@ import { ANTIGRAVITY_PROVIDER } from "./antigravity.js";
 import { ARCEE_PROVIDER } from "./arcee.js";
 import { BAI_PROVIDER } from "./bai.js";
 import { BLUESMINDS_PROVIDER } from "./bluesminds.js";
+import { DEEPAI_PROVIDER } from "./deepai.js";
 import { BYTEPLUS_PROVIDER } from "./byteplus.js";
 import { CEREBRAS_PROVIDER } from "./cerebras.js";
 import { CHUTES_PROVIDER } from "./chutes.js";
@@ -59,6 +60,7 @@ export const KNOWN_PROVIDERS = [
     NEOSANTARA_PROVIDER,
     GOROUTER_PROVIDER,
     BLUESMINDS_PROVIDER,
+    DEEPAI_PROVIDER,
     SEEKAI_PROVIDER,
     TABITOKEN_PROVIDER,
     TOKENROUTER_PROVIDER,

@@ -40,6 +40,41 @@ interface CloudCodeFetchAvailableModelsResponse {
     >;
 }
 
+interface AntigravityQuotaModelDef {
+    id: string;
+    name: string;
+    upstreamBaseId: string;
+}
+
+const ALL_ANTIGRAVITY_QUOTA_MODELS: AntigravityQuotaModelDef[] = [
+    { id: "gemini-3.6-flash-high", name: "Gemini 3.6 Flash (High)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.6-flash-medium", name: "Gemini 3.6 Flash (Medium)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.6-flash-low", name: "Gemini 3.6 Flash (Low)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.5-flash-high", name: "Gemini 3.5 Flash (High)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.5-flash-medium", name: "Gemini 3.5 Flash (Medium)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.5-flash-low", name: "Gemini 3.5 Flash (Low)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.5-flash-extra-low", name: "Gemini 3.5 Flash (Extra Low)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3.5-flash-lite", name: "Gemini 3.5 Flash Lite", upstreamBaseId: "gemini-3.5-flash-lite" },
+    { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)", upstreamBaseId: "gemini-2.5-pro" },
+    { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)", upstreamBaseId: "gemini-2.5-pro" },
+    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash Lite", upstreamBaseId: "gemini-3.1-flash-lite" },
+    { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash (Image)", upstreamBaseId: "gemini-3.1-flash-image" },
+    { id: "gemini-3-flash", name: "Gemini 3 Flash", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-3-flash-agent", name: "Gemini 3 Flash (Agent)", upstreamBaseId: "gemini-3-flash" },
+    { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", upstreamBaseId: "gemini-2.5-pro" },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", upstreamBaseId: "gemini-2.5-flash" },
+    { id: "gemini-2.5-flash-thinking", name: "Gemini 2.5 Flash (Thinking)", upstreamBaseId: "gemini-2.5-flash-thinking" },
+    { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", upstreamBaseId: "gemini-2.5-flash-lite" },
+    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (Thinking)", upstreamBaseId: "claude-sonnet-4-6" },
+    { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 (Thinking)", upstreamBaseId: "claude-opus-4-6-thinking" },
+    { id: "gpt-oss-120b-medium", name: "GPT-OSS 120B (Medium)", upstreamBaseId: "gpt-oss-120b-medium" },
+    { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash", upstreamBaseId: "gemini-3.8-flash-tiered" },
+    { id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)", upstreamBaseId: "gemini-3.8-flash-tiered" },
+    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)", upstreamBaseId: "gemini-3.8-flash-high" },
+    { id: "gemini-3.8-flash-medium", name: "Gemini 3.8 Flash (Medium)", upstreamBaseId: "gemini-3.8-flash-medium" },
+    { id: "gemini-3.8-flash-low", name: "Gemini 3.8 Flash (Low)", upstreamBaseId: "gemini-3.8-flash-low" }
+];
+
 export async function fetchAntigravityLiveQuota(
     providerId: string,
     accountName: string,
@@ -55,7 +90,7 @@ export async function fetchAntigravityLiveQuota(
         headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
-            "User-Agent": "Antigravity/1.0 (VSCode)",
+            "User-Agent": process.env.ANTIGRAVITY_UA || "antigravity/cli/1.5.9",
             "x-goog-api-client": "gl-node/18.0.0 gd/1.0.0"
         },
         body: JSON.stringify({})
@@ -70,27 +105,26 @@ export async function fetchAntigravityLiveQuota(
         throw new Error("Antigravity quota fetch returned no models");
     }
 
-    const Quotas: LiveModelQuotaItem[] = Object.entries(Data.models)
-        .filter(([modelId]) => !/^chat_\d+$/.test(modelId) && !/-disabled$/i.test(modelId) && !/_preview$/i.test(modelId))
-        .map(([modelId, item]) => {
-        const RemainingFraction = item.quotaInfo?.remainingFraction ?? 1.0;
+    const Quotas: LiveModelQuotaItem[] = ALL_ANTIGRAVITY_QUOTA_MODELS.map((def) => {
+        const item = Data.models?.[def.upstreamBaseId] || Data.models?.[def.id];
+        const RemainingFraction = item?.quotaInfo?.remainingFraction ?? 1.0;
         const PercentageValue = Math.round(RemainingFraction * 100);
         const Limit = 1000;
         const Used = Math.round((1 - RemainingFraction) * Limit);
-        const ResetIn = formatResetIn(item.quotaInfo?.resetTime);
+        const ResetIn = formatResetIn(item?.quotaInfo?.resetTime);
 
         let Status: "ok" | "warning" | "exhausted" = "ok";
         if (PercentageValue <= 5) Status = "exhausted";
         else if (PercentageValue <= 20) Status = "warning";
 
         return {
-            name: item.displayName || modelId,
+            name: def.name,
             used: Used,
             limit: Limit,
             percentage: `${PercentageValue}%`,
             percentageValue: PercentageValue,
             resetIn: ResetIn,
-            resetTime: item.quotaInfo?.resetTime,
+            resetTime: item?.quotaInfo?.resetTime,
             status: Status
         };
     });

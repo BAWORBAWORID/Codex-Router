@@ -78,7 +78,7 @@ export function ProviderModelCard({ model, copied, onCopy, onDelete }: ProviderM
                             type="button"
                             onClick={() => onDelete(model.id)}
                             className="text-[var(--ink-3)] hover:text-rose-500 hover:bg-rose-500/10 p-1 rounded transition-colors cursor-pointer"
-                            title="Hide model"
+                            title="Delete model"
                         >
                             <Trash2 className="size-3" />
                         </button>

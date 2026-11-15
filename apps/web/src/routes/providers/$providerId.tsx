@@ -27,7 +27,8 @@ import { ImportModelsDialog } from "@/components/providers/ImportModelsDialog";
 import { ProviderModelCard } from "@/components/providers/ProviderModelCard";
 import { ProviderModelTable } from "@/components/providers/ProviderModelTable";
 import { ProviderDetailSkeleton } from "@/components/skeletons";
-import { CATEGORY_LABELS, getProviderWebsiteUrl } from "@codex/constants";
+import { CATEGORY_LABELS, getProviderWebsiteUrl, providerAlias } from "@codex/constants";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/providers/$providerId")({
     staticData: { title: "Providers" },
@@ -97,37 +98,99 @@ function ProviderDetailPage() {
         toast.success(`Restored ${modelIds.length} hidden model${modelIds.length > 1 ? "s" : ""}`);
     };
 
-    const handleDeleteModel = (modelId: string) => {
-        setDeletedModelIds((prev) => {
-            const updated = prev.includes(modelId) ? prev : [...prev, modelId];
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(updated));
-            } catch {}
-            return updated;
-        });
-        toast.info(`Model "${modelId}" hidden from list`, {
-            action: {
-                label: "Undo",
-                onClick: () => handleRestoreModel(modelId)
-            }
-        });
+    const handleDeleteModel = async (modelId: string) => {
+        const alias = provider?.alias || providerAlias(providerId);
+        let cleanId = modelId;
+        if (alias && cleanId.startsWith(`${alias}/`)) {
+            cleanId = cleanId.slice(alias.length + 1);
+        }
+
+        const targetModel = provider?.models?.find((m) => m.id === modelId || m.id === cleanId);
+        const isCustom = targetModel ? Boolean((targetModel as { custom?: boolean }).custom) : true;
+
+        if (isCustom) {
+            deleteModelMutation.mutate(cleanId, {
+                onSuccess: () => {
+                    setDeletedModelIds((prev) => prev.filter((id) => id !== modelId && id !== cleanId));
+                    try {
+                        const saved = localStorage.getItem(storageKey);
+                        if (saved) {
+                            const parsed = JSON.parse(saved).filter((id: string) => id !== modelId && id !== cleanId);
+                            localStorage.setItem(storageKey, JSON.stringify(parsed));
+                        }
+                    } catch {}
+                }
+            });
+        } else {
+            setDeletedModelIds((prev) => {
+                const updated = prev.includes(modelId) ? prev : [...prev, modelId];
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(updated));
+                } catch {}
+                return updated;
+            });
+            toast.info(`Model "${modelId}" hidden from list`, {
+                action: {
+                    label: "Undo",
+                    onClick: () => handleRestoreModel(modelId)
+                }
+            });
+        }
     };
 
-    const handleDeleteMultipleModels = (modelIds: string[]) => {
-        setDeletedModelIds((prev) => {
-            const set = new Set([...prev, ...modelIds]);
-            const updated = Array.from(set);
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(updated));
-            } catch {}
-            return updated;
-        });
-        toast.info(`Hidden ${modelIds.length} model${modelIds.length > 1 ? "s" : ""} from list`, {
-            action: {
-                label: "Undo",
-                onClick: () => handleRestoreMultiple(modelIds)
+    const handleDeleteMultipleModels = async (modelIds: string[]) => {
+        const alias = provider?.alias || providerAlias(providerId);
+        const customIds: string[] = [];
+        const builtInIds: string[] = [];
+
+        for (const id of modelIds) {
+            let cleanId = id;
+            if (alias && cleanId.startsWith(`${alias}/`)) {
+                cleanId = cleanId.slice(alias.length + 1);
             }
-        });
+            const targetModel = provider?.models?.find((m) => m.id === id || m.id === cleanId);
+            const isCustom = targetModel ? Boolean((targetModel as { custom?: boolean }).custom) : true;
+            if (isCustom) {
+                customIds.push(cleanId);
+            } else {
+                builtInIds.push(id);
+            }
+        }
+
+        if (builtInIds.length > 0) {
+            setDeletedModelIds((prev) => {
+                const set = new Set([...prev, ...builtInIds]);
+                const updated = Array.from(set);
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(updated));
+                } catch {}
+                return updated;
+            });
+        }
+
+        if (customIds.length > 0) {
+            try {
+                await Promise.all(
+                    customIds.map((cid) =>
+                        api.delete(`/v1/providers/${providerId}/models/${encodeURIComponent(cid)}`)
+                    )
+                );
+                setDeletedModelIds((prev) => prev.filter((id) => !customIds.includes(id) && !modelIds.includes(id)));
+                try {
+                    const saved = localStorage.getItem(storageKey);
+                    if (saved) {
+                        const parsed = JSON.parse(saved).filter((id: string) => !customIds.includes(id) && !modelIds.includes(id));
+                        localStorage.setItem(storageKey, JSON.stringify(parsed));
+                    }
+                } catch {}
+
+                void refetch();
+                toast.success(`Deleted ${customIds.length} custom model${customIds.length > 1 ? "s" : ""}`);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Failed to delete custom models";
+                toast.error(message);
+            }
+        }
     };
 
     const handleRestoreAllModels = () => {
@@ -304,7 +367,10 @@ function ProviderDetailPage() {
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => setIsImportModelOpen(true)}
+                        onClick={() => {
+                            void fetchModelsQuery.refetch();
+                            setIsImportModelOpen(true);
+                        }}
                         className="h-8 text-xs font-semibold cursor-pointer shadow-xs gap-1.5"
                     >
                         <Download className="size-3.5" />
@@ -525,6 +591,7 @@ function ProviderDetailPage() {
                 providerName={provider.name}
                 providerId={providerId}
                 existingModels={fetchModelsQuery.data?.data ?? []}
+                availableModels={provider.models ?? []}
                 isFetching={fetchModelsQuery.isFetching}
                 isImporting={importModelsMutation.isPending}
                 onFetchModels={() => void fetchModelsQuery.refetch()}

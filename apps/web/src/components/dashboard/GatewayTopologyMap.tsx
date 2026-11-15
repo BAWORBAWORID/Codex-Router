@@ -262,7 +262,7 @@ function ProviderMatrixView({ displayedProviders, isTokenSaverActive, activeProv
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
                 {displayedProviders.map((p) => {
-                    const isOnline = isProviderConnected(p) || p.id === "opencode_zen" || p.id === "opencode";
+                    const isOnline = isProviderConnected(p);
                     const connCount = getConnectedCount(p);
                     const isReceiving = activeProviderIds.has(p.id.toLowerCase());
                     return (
@@ -356,13 +356,8 @@ function GatewayTopologyCanvas() {
 
     const connectedProviders = useMemo(() => {
         const list = allProviders.filter(
-            (p) => p.id === "opencode_zen" || p.id === "opencode" || (!p.requires_api_key && !p.requires_oauth) || isProviderConnected(p) || (p.status?.connectedCount ?? 0) > 0 || p.status?.state === "connected" || (p.connections && p.connections.length > 0)
+            (p) => isProviderConnected(p) || (p.status?.connectedCount ?? 0) > 0 || p.status?.state === "connected" || (p.connections && p.connections.length > 0)
         );
-        const hasOpenCode = list.some((p) => p.id === "opencode_zen" || p.id === "opencode");
-        if (!hasOpenCode) {
-            const zen = allProviders.find((p) => p.id === "opencode_zen" || p.id === "opencode");
-            if (zen) list.push(zen);
-        }
         return list;
     }, [allProviders]);
 
@@ -386,9 +381,8 @@ function GatewayTopologyCanvas() {
 
         displayedProviders.forEach((provider, index) => {
             const nodeId = `node-provider-${provider.id}`;
-            const isZen = provider.id === "opencode_zen" || provider.id === "opencode" || (!provider.requires_api_key && !provider.requires_oauth);
-            const isOnline = isZen || isProviderConnected(provider);
-            const connCount = getConnectedCount(provider) || (isZen ? 1 : 0);
+            const isOnline = isProviderConnected(provider);
+            const connCount = getConnectedCount(provider);
             const activeTraffic = activePings[provider.id.toLowerCase()];
             const isReceivingRequest = Boolean(activeTraffic);
             const angle = providerCount === 1 ? 0 : (index / providerCount) * 2 * Math.PI - Math.PI / 2;

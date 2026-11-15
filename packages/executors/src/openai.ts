@@ -101,7 +101,7 @@ export class OpenAIExecutor implements AIProvider {
             if (token.startsWith("AIzaSy")) {
                 headers["x-goog-api-key"] = token;
             } else if (token.startsWith("ya29.")) {
-                headers["User-Agent"] = "Antigravity/1.0 (VSCode)";
+                headers["User-Agent"] = process.env.ANTIGRAVITY_UA || "antigravity/cli/1.5.9";
                 headers["x-goog-api-client"] = "gl-node/18.0.0 gd/1.0.0";
             }
         }

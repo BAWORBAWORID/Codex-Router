@@ -292,7 +292,7 @@ export function ProviderModelTable({
                                     type="button"
                                     onClick={() => onDelete(model.id)}
                                     className="text-[var(--ink-3)] hover:text-rose-500 hover:bg-rose-500/10 p-1 rounded transition-colors cursor-pointer"
-                                    title="Hide model from list"
+                                    title="Delete model"
                                 >
                                     <Trash2 className="size-3" />
                                 </button>
@@ -367,10 +367,10 @@ export function ProviderModelTable({
                                 type="button"
                                 onClick={handleBulkDelete}
                                 className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 hover:bg-destructive/20 px-3 py-1.5 text-xs font-semibold text-destructive transition-all cursor-pointer border border-destructive/30 shadow-2xs hover:scale-105 active:scale-95"
-                                title="Hide selected models from list"
+                                title="Delete selected models"
                             >
                                 <Trash2 className="size-3.5" />
-                                <span>Hide</span>
+                                <span>Delete</span>
                             </button>
                         )}
 

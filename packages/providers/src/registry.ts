@@ -14,7 +14,7 @@ import type {
 } from "@codex/types";
 import { CircuitBreaker, circuitBreaker as defaultCircuitBreaker } from "./circuitBreaker.js";
 
-const DEFAULT_MAX_TOKENS_CAP = 4096;
+const DEFAULT_MAX_TOKENS_CAP = 65536;
 
 function clampMaxTokens(req: ChatCompletionRequest): ChatCompletionRequest {
     if (req.max_tokens && req.max_tokens > DEFAULT_MAX_TOKENS_CAP) {

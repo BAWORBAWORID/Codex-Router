@@ -1,3 +1,4 @@
+import nodeCrypto from "node:crypto";
 import {
     CODEBUDDY_BASE_URL,
     CODEBUDDY_CN_BASE_URL,
@@ -91,6 +92,11 @@ function InitiatePKCEFor(handler: AuthProviderHandler, params: OAuthLoginParams)
     const oAuthInstance = new handler.oauthClass!({ clientId, redirectUri, prompt });
 
     const pkce = generatePKCE();
+    if (handler.providerId === "deepai") {
+        pkce.state = nodeCrypto.randomBytes(32).toString("hex");
+    }
+    const authorizeUrl = oAuthInstance.getAuthorizationUrl!(pkce);
+
     saveOAuthSessionDB({
         state: pkce.state,
         codeVerifier: pkce.codeVerifier,
@@ -98,8 +104,6 @@ function InitiatePKCEFor(handler: AuthProviderHandler, params: OAuthLoginParams)
         redirectUri,
         createdAt: Date.now()
     });
-
-    const authorizeUrl = oAuthInstance.getAuthorizationUrl!(pkce);
 
     return {
         authorizeUrl,
@@ -462,6 +466,12 @@ RegisterEntry("antigravity", {
     initiate: (params) => InitiatePKCEFor(AuthHandlers.Antigravity, params),
     callback: (code, state) => ProcessOAuthCallbackFor(AuthHandlers.Antigravity, code, state),
     importToken: (params) => ProcessTokenImportFor(AuthHandlers.Antigravity, params)
+});
+
+RegisterEntry("deepai", {
+    initiate: (params) => InitiatePKCEFor(AuthHandlers.DeepAI, params),
+    callback: (code, state) => ProcessOAuthCallbackFor(AuthHandlers.DeepAI, code, state),
+    importToken: (params) => ProcessTokenImportFor(AuthHandlers.DeepAI, params)
 });
 
 RegisterEntry("claude", {

@@ -14,6 +14,7 @@ const ICON_MAPPING: Record<string, string> = {
     gorouter: "/icons/providers/newapi.png",
     newapi: "/icons/providers/newapi.png",
     bluesminds: "/icons/providers/bluesminds.png",
+    deepai: "/icons/providers/deepai.png",
     seekai: "/icons/providers/newapi.png",
     tabitoken: "/icons/providers/newapi.png",
     tokenrouter: "/icons/providers/tokenrouter.png",

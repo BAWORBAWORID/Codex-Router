@@ -43,7 +43,14 @@ export function deleteCustomModelDB(providerId: string, modelId: string): boolea
     const Result = db
         .prepare("DELETE FROM custom_models WHERE provider_id = ? AND model_id = ?")
         .run(providerId, modelId);
-    return num(Result.changes) > 0;
+    if (num(Result.changes) > 0) return true;
+
+    const Fallback = db
+        .prepare(
+            "DELETE FROM custom_models WHERE LOWER(provider_id) = LOWER(?) AND LOWER(model_id) = LOWER(?)"
+        )
+        .run(providerId, modelId);
+    return num(Fallback.changes) > 0;
 }
 
 function mapCustomModelRow(row: CustomModelDBShape): CustomModelRow {

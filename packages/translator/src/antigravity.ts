@@ -178,11 +178,12 @@ export function geminiToOpenAIResponse(
  * ============================================================================
  */
 
-// Official Antigravity IDE Desktop 2.1.1 fingerprint (macOS arm64)
-export const ANTIGRAVITY_IDE_VERSION = "1.5.8";
+// Official Antigravity CLI 1.5.9 User-Agent
+export const ANTIGRAVITY_CLI_VERSION = "1.5.9";
+export const ANTIGRAVITY_IDE_VERSION = "1.5.9";
 export const ANTIGRAVITY_IDE_USER_AGENT =
     process.env.ANTIGRAVITY_UA ||
-    `antigravity/ide/${ANTIGRAVITY_IDE_VERSION} darwin/arm64`;
+    `antigravity/cli/${ANTIGRAVITY_CLI_VERSION}`;
 
 export const MAX_ANTIGRAVITY_OUTPUT_TOKENS = 64000;
 
@@ -907,7 +908,7 @@ export function stripTrailingAssistantTurn(contents: GeminiContent[]): GeminiCon
  * Resolve maximum output tokens cap per model family to avoid upstream 400 on oversized max_tokens.
  */
 export function resolveAntigravityOutputCap(modelId?: string): number {
-    if (!modelId) return 8192;
+    if (!modelId) return 65536;
     const lower = modelId.toLowerCase();
     if (lower.includes("thinking") || lower.includes("opus") || lower.includes("sonnet")) {
         return 64000;
@@ -915,16 +916,19 @@ export function resolveAntigravityOutputCap(modelId?: string): number {
     if (lower.includes("pro") || lower.includes("flash")) {
         return 65536;
     }
-    return 8192;
+    if (lower.includes("gpt-oss")) {
+        return 32768;
+    }
+    return 65536;
 }
 
 /**
  * Pro family fallback chains when an upstream model ID returns 400 Bad Request.
  */
 export const ANTIGRAVITY_PRO_FALLBACK_CHAINS: Record<string, string[]> = {
-    "gemini-3.1-pro-high": ["gemini-pro-agent", "gemini-3.1-pro-high", "gemini-3-pro"],
-    "gemini-3.1-pro-low": ["gemini-pro-agent", "gemini-3.1-pro-low", "gemini-3-pro"],
-    "gemini-pro-agent": ["gemini-pro-agent", "gemini-3.1-pro-high", "gemini-3-pro"]
+    "gemini-2.5-pro": ["gemini-2.5-pro", "gemini-3-flash", "gemini-2.5-flash"],
+    "gemini-3.1-pro-high": ["gemini-2.5-pro", "gemini-3-flash", "gemini-2.5-flash"],
+    "gemini-3.1-pro-low": ["gemini-2.5-pro", "gemini-3-flash", "gemini-2.5-flash"]
 };
 
 export function getAntigravityModelFallbacks(modelName: string): string[] {
@@ -978,17 +982,17 @@ export function parseAntigravityModelName(rawModel: string): string {
     if (model === "gemini-3.8-flash") {
         return "gemini-3.8-flash-tiered";
     }
-    if (model === "gemini-3.5-flash-high") {
-        return "gemini-3-flash-agent";
+    if (model.startsWith("gemini-3.6-flash")) {
+        return "gemini-3-flash";
     }
-    if (model === "gemini-3.1-pro-high") {
-        return "gemini-pro-agent";
+    if (model.startsWith("gemini-3.5-flash-") && model !== "gemini-3.5-flash-lite") {
+        return "gemini-3.5-flash-lite";
     }
-    if (model === "gemini-3.5-flash-medium") {
-        return "gemini-3.5-flash-low";
+    if (model.startsWith("gemini-3.1-pro")) {
+        return "gemini-2.5-pro";
     }
-    if (model === "gemini-3.5-flash-low") {
-        return "gemini-3.5-flash-extra-low";
+    if (model === "gemini-3-flash-agent") {
+        return "gemini-3-flash";
     }
     return model;
 }

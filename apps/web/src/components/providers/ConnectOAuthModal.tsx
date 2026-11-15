@@ -56,8 +56,10 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
         const providerEndpoint =
             baseId === "antigravity"
                 ? "/v1/auth/antigravity/login?format=json"
-                : baseId === "qoder"
-                  ? "/v1/auth/qoder/login?format=json"
+                : baseId === "deepai"
+                  ? "/v1/auth/deepai/login?format=json"
+                  : baseId === "qoder"
+                    ? "/v1/auth/qoder/login?format=json"
                   : baseId === "codebuddy"
                     ? `/v1/auth/${authProviderId}/login?format=json`
                     : baseId === "claude" || baseId === "anthropic"
@@ -152,9 +154,11 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
             const endpoint =
                 baseId === "antigravity"
                     ? "/v1/auth/antigravity/callback"
-                    : baseId === "qoder"
-                      ? "/v1/auth/qoder/callback"
-                      : "/v1/auth/openai/callback";
+                    : baseId === "deepai"
+                      ? "/v1/auth/deepai/callback"
+                      : baseId === "qoder"
+                        ? "/v1/auth/qoder/callback"
+                        : "/v1/auth/openai/callback";
             return api.post(endpoint, payload);
         },
         onSuccess: () => {

@@ -26,8 +26,6 @@ export interface AntigravityModelDefinition {
  * request fails with 400 rather than degrading gracefully.
  */
 export const ANTIGRAVITY_MODELS: AntigravityModelDefinition[] = [
-    { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash" },
-    { id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)" },
     { id: "gemini-3.6-flash-high", name: "Gemini 3.6 Flash (High)" },
     { id: "gemini-3.6-flash-medium", name: "Gemini 3.6 Flash (Medium)" },
     { id: "gemini-3.6-flash-low", name: "Gemini 3.6 Flash (Low)" },
@@ -48,7 +46,12 @@ export const ANTIGRAVITY_MODELS: AntigravityModelDefinition[] = [
     { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (Thinking)" },
     { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 (Thinking)" },
-    { id: "gpt-oss-120b-medium", name: "GPT-OSS 120B (Medium)" }
+    { id: "gpt-oss-120b-medium", name: "GPT-OSS 120B (Medium)" },
+    { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash" },
+    { id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)" },
+    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)" },
+    { id: "gemini-3.8-flash-medium", name: "Gemini 3.8 Flash (Medium)" },
+    { id: "gemini-3.8-flash-low", name: "Gemini 3.8 Flash (Low)" }
 ];
 
 export const ANTIGRAVITY_MODEL_IDS: string[] = ANTIGRAVITY_MODELS.map((m) => m.id);

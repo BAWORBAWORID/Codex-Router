@@ -505,9 +505,12 @@ export class AntigravityExecutor implements AIProvider {
                 return;
             } catch (err: unknown) {
                 lastError = err instanceof Error ? err : new Error(String(err));
-                // Only retry next candidate if HTTP 400 (Bad Request) and not the last candidate
-                const is400 = lastError.message.includes("(400)");
-                if (is400 && i < modelFallbacks.length - 1) {
+                // Retry next candidate if HTTP 400 (Bad Request) or 503 (Server Capacity Exhausted)
+                const isRetryableCandidate =
+                    lastError.message.includes("(400)") ||
+                    lastError.message.includes("(503)") ||
+                    lastError.message.includes("MODEL_CAPACITY_EXHAUSTED");
+                if (isRetryableCandidate && i < modelFallbacks.length - 1) {
                     continue;
                 }
                 throw lastError;

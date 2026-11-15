@@ -6,6 +6,7 @@ import {
     CODEBUDDY_CN_DOMAIN,
     CODEBUDDY_CN_USER_AGENT,
     DEFAULT_PROVIDERS,
+    DEEPAI_BASE_URL,
     GOROUTER_BASE_URL,
     isProviderBaseId,
     isSeedProvider,
@@ -22,6 +23,7 @@ import {
     AnthropicExecutor,
     BAIExecutor,
     BluesMindsExecutor,
+    DeepAIExecutor,
     CodeBuddyExecutor,
     CodexExecutor,
     CommandCodeExecutor,
@@ -210,6 +212,17 @@ export function loadSavedProvidersFromDB(): void {
                     })
                 );
                 break;
+            case isProviderBaseId(p.id, "deepai"):
+                registry.registerProvider(
+                    new DeepAIExecutor({
+                        id: p.id || p.providerId,
+                        name: p.name,
+                        baseUrl: baseUrl || DEEPAI_BASE_URL,
+                        apiKey: p.apiKey,
+                        accessToken: p.accessToken
+                    })
+                );
+                break;
             case isProviderBaseId(p.id, "seekai"):
                 registry.registerProvider(
                     new SeekAIExecutor({
@@ -336,24 +349,8 @@ export function loadSavedProvidersFromDB(): void {
         }
     }
 
-    // Auto-register built-in free tier providers so users can immediately use them out of the box
-    const freeTierSeeds = DEFAULT_PROVIDERS.filter((s) => s.category === "free_tier");
-    for (const seed of freeTierSeeds) {
-        const hasExplicitConnection = savedProviders.some(
-            (p) => (p.id === seed.id || p.providerId === seed.id) && !isSeedProvider(p)
-        );
-        if (!hasExplicitConnection) {
-            if (seed.id === "opencode_zen") {
-                registry.registerProvider(
-                    new OpenCodeZenExecutor({
-                        id: seed.id,
-                        name: seed.name,
-                        baseUrl: seed.base_url || OPENCODE_ZEN_BASE_URL
-                    })
-                );
-            }
-        }
-    }
+    // Auto-register built-in free tier providers only if explicit connection exists
+    // (disabled auto-registering opencode_zen without key)
 }
 
 /**

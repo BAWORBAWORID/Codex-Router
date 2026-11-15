@@ -317,14 +317,65 @@ export class ProvidersLogic {
                 "Model ID may only contain letters, numbers, dots, dashes, underscores, slashes, colons, and spaces"
             );
 
-        addCustomModelDB(Id, Trimmed);
-        const FullId = `${providerAlias(Id)}/${Trimmed}`;
+        const Alias = providerAlias(Id);
+        let CleanModelId = Trimmed;
+        if (CleanModelId.toLowerCase().startsWith(`${Alias.toLowerCase()}/`)) {
+            CleanModelId = CleanModelId.slice(Alias.length + 1);
+        } else if (CleanModelId.toLowerCase().startsWith(`${Id}/`)) {
+            CleanModelId = CleanModelId.slice(Id.length + 1);
+        }
+
+        // Check if already in built-in / default catalog
+        const defaultModels = DEFAULT_PROVIDER_MAP[Id]?.models ?? [];
+        const isBuiltIn = defaultModels.some(
+            (m) =>
+                m.id.toLowerCase() === CleanModelId.toLowerCase() ||
+                (m.id.includes("/") && m.id.split("/").slice(1).join("/").toLowerCase() === CleanModelId.toLowerCase())
+        );
+        if (isBuiltIn) {
+            throw new Error(`Model '${CleanModelId}' is already available as a built-in model for this provider`);
+        }
+
+        addCustomModelDB(Id, CleanModelId);
+        const FullId = `${providerAlias(Id)}/${CleanModelId}`;
         registry.clearModelsCache();
         return { id: FullId, object: "model", owned_by: providerAlias(Id) };
     }
 
     public static DeleteCustomModel(ProviderId: string, ModelId: string): void {
-        const Deleted = deleteCustomModelDB(ProviderId.toLowerCase(), ModelId);
+        const Id = ProviderId.toLowerCase();
+        const Alias = providerAlias(Id).toLowerCase();
+        let CleanModelId = ModelId;
+        if (CleanModelId.toLowerCase().startsWith(`${Alias}/`)) {
+            CleanModelId = CleanModelId.slice(Alias.length + 1);
+        } else if (CleanModelId.toLowerCase().startsWith(`${Id}/`)) {
+            CleanModelId = CleanModelId.slice(Id.length + 1);
+        }
+
+        let Deleted = deleteCustomModelDB(Id, CleanModelId);
+        if (!Deleted && CleanModelId !== ModelId) {
+            Deleted = deleteCustomModelDB(Id, ModelId);
+        }
+        if (!Deleted) {
+            const providers = getAllProvidersDB();
+            const matched = providers.filter(
+                (P) =>
+                    BaseIdOf(P.providerId || P.id).toLowerCase() === Id ||
+                    (P.id && P.id.toLowerCase() === Id) ||
+                    (P.providerId && P.providerId.toLowerCase() === Id) ||
+                    (P.name && P.name.toLowerCase() === Id)
+            );
+            for (const p of matched) {
+                const targetId = (p.providerId || p.id).toLowerCase();
+                if (
+                    deleteCustomModelDB(targetId, CleanModelId) ||
+                    deleteCustomModelDB(targetId, ModelId)
+                ) {
+                    Deleted = true;
+                    break;
+                }
+            }
+        }
         if (!Deleted) throw new Error(`Custom model '${ModelId}' not found for '${ProviderId}'`);
         registry.clearModelsCache();
     }
@@ -355,6 +406,36 @@ export class ProvidersLogic {
         const imported: ModelObject[] = [];
         const skipped: string[] = [];
 
+        // Build set of already existing / available model IDs for this provider
+        const existingKeys = new Set<string>();
+        for (const cm of getCustomModelsByProviderDB(Id)) {
+            existingKeys.add(cm.modelId.toLowerCase());
+            const bare = cm.modelId.includes("/") ? cm.modelId.split("/").slice(1).join("/") : cm.modelId;
+            existingKeys.add(bare.toLowerCase());
+        }
+        const defaultModels = DEFAULT_PROVIDER_MAP[Id]?.models ?? [];
+        for (const m of defaultModels) {
+            existingKeys.add(m.id.toLowerCase());
+            const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
+            existingKeys.add(bare.toLowerCase());
+        }
+        const matchingProviders = Array.from(registry.getAllProviders().values()).filter(
+            (P) =>
+                P.id.toLowerCase() === Id ||
+                P.id.toLowerCase().startsWith(`${Id}_`) ||
+                P.id.toLowerCase().startsWith(`${Id}-`)
+        );
+        for (const P of matchingProviders) {
+            try {
+                const list = P.listModels ? P.listModels() : [];
+                for (const m of list) {
+                    existingKeys.add(m.id.toLowerCase());
+                    const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
+                    existingKeys.add(bare.toLowerCase());
+                }
+            } catch {}
+        }
+
         for (const raw of ModelIds) {
             const Trimmed = raw.trim();
             if (!Trimmed) {
@@ -366,9 +447,30 @@ export class ProvidersLogic {
                 continue;
             }
 
-            addCustomModelDB(Id, Trimmed);
+            // Strip alias prefix if present (e.g. "deepai/glm-5.3" -> "glm-5.3")
+            let CleanModelId = Trimmed;
+            if (CleanModelId.toLowerCase().startsWith(`${Alias.toLowerCase()}/`)) {
+                CleanModelId = CleanModelId.slice(Alias.length + 1);
+            } else if (CleanModelId.toLowerCase().startsWith(`${Id}/`)) {
+                CleanModelId = CleanModelId.slice(Id.length + 1);
+            }
+
+            const bare = CleanModelId.includes("/") ? CleanModelId.split("/").slice(1).join("/") : CleanModelId;
+            if (
+                existingKeys.has(CleanModelId.toLowerCase()) ||
+                existingKeys.has(bare.toLowerCase()) ||
+                existingKeys.has(Trimmed.toLowerCase())
+            ) {
+                // Already an available model or already imported
+                skipped.push(raw);
+                continue;
+            }
+
+            addCustomModelDB(Id, CleanModelId);
+            existingKeys.add(CleanModelId.toLowerCase());
+            existingKeys.add(bare.toLowerCase());
             imported.push({
-                id: `${Alias}/${Trimmed}`,
+                id: `${Alias}/${CleanModelId}`,
                 object: "model",
                 owned_by: Alias,
                 custom: true

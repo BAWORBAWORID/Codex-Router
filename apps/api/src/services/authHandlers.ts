@@ -22,6 +22,7 @@ import {
     AnthropicExecutor,
     BAIExecutor,
     BluesMindsExecutor,
+    DeepAIExecutor,
     CodeBuddyExecutor,
     CodexExecutor,
     CommandCodeExecutor,
@@ -33,6 +34,7 @@ import {
 } from "@codex/executors";
 import {
     AntigravityOAuth,
+    DeepAIOAuth,
     ClaudeOAuth,
     CodeBuddyCNOAuth,
     CodeBuddyOAuth,
@@ -66,6 +68,29 @@ const openaiCodex: AuthProviderHandler = {
     }),
     buildExecutor: ({ id, name, accessToken, refreshToken, accountId }) =>
         new CodexExecutor({ id, name, accessToken, refreshToken, accountId })
+};
+
+const deepai: AuthProviderHandler = {
+    providerId: "deepai",
+    displayName: "DeepAI",
+    category: "oauth",
+    protocol: "openai",
+    idPrefix: "deepai",
+    defaultRedirectUri: "http://localhost:1455/auth/deepai/callback",
+    oauthSuccessMessage: "Login DeepAI Berhasil!",
+    tokenImportMessage: "DeepAI API Key saved directly to SQLite database!",
+    oauthClass: DeepAIOAuth,
+    mapOAuthTokens: (tokens) => ({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        accountId: tokens.accountId
+    }),
+    mapImportTokens: (params) => ({
+        accessToken: params.accessToken,
+        refreshToken: params.refreshToken
+    }),
+    buildExecutor: ({ id, name, accessToken }) =>
+        new DeepAIExecutor({ id, name, apiKey: accessToken, baseUrl: "http://127.0.0.1:8787/v1" })
 };
 
 const antigravity: AuthProviderHandler = {
@@ -348,6 +373,9 @@ const bai: AuthProviderHandler = {
 export const AuthHandlers = {
     OpenAI: openaiCodex,
     Antigravity: antigravity,
+    DeepAI: deepai,
+    deepai: deepai,
+    antigravity: antigravity,
     CommandCode: commandCode,
     Anthropic: anthropic,
     Claude: claude,

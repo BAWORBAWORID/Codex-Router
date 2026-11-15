@@ -18,6 +18,7 @@ interface ImportModelsDialogProps {
     providerName: string;
     providerId: string;
     existingModels: ModelObject[];
+    availableModels?: ModelObject[];
     isFetching: boolean;
     isImporting: boolean;
     onFetchModels: () => void;
@@ -30,6 +31,7 @@ export function ImportModelsDialog({
     providerName,
     providerId,
     existingModels,
+    availableModels = [],
     isFetching,
     isImporting,
     onFetchModels,
@@ -40,11 +42,30 @@ export function ImportModelsDialog({
     const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
     const [filter, setFilter] = useState("");
 
+    const isAlreadyAvailable = (modelId: string) => {
+        if (!availableModels || availableModels.length === 0) return false;
+        const bareId = modelId.includes("/") ? modelId.split("/").slice(1).join("/") : modelId;
+        const lowModel = modelId.toLowerCase();
+        const lowBare = bareId.toLowerCase();
+        return availableModels.some((am) => {
+            const amId = am.id.toLowerCase();
+            const amBare = am.id.includes("/") ? am.id.split("/").slice(1).join("/").toLowerCase() : amId;
+            return (
+                amId === lowModel ||
+                amBare === lowBare ||
+                amId.endsWith(`/${lowBare}`) ||
+                lowModel.endsWith(`/${amBare}`) ||
+                amId === lowBare ||
+                amBare === lowModel
+            );
+        });
+    };
+
     const handlePasteImport = () => {
         const lines = pasteText
             .split(/[\n,]+/)
             .map((l) => l.trim())
-            .filter((l) => l.length > 0);
+            .filter((l) => l.length > 0 && !isAlreadyAvailable(l));
         if (lines.length === 0) return;
         onImport(lines);
     };
@@ -56,6 +77,7 @@ export function ImportModelsDialog({
     };
 
     const toggleModel = (id: string) => {
+        if (isAlreadyAvailable(id)) return;
         setSelectedModels((prev) => {
             const next = new Set(prev);
             if (next.has(id)) {
@@ -68,7 +90,9 @@ export function ImportModelsDialog({
     };
 
     const selectAll = () => {
-        const filtered = getFilteredModels().map((m) => m.id);
+        const filtered = getFilteredModels()
+            .filter((m) => !isAlreadyAvailable(m.id))
+            .map((m) => m.id);
         setSelectedModels(new Set(filtered));
     };
 
@@ -200,36 +224,49 @@ export function ImportModelsDialog({
                                     </div>
 
                                     {/* Model list */}
-                                    <div className="rounded-lg border border-border/70 bg-muted/20 divide-y divide-border/40">
+                                    <div className="rounded-lg border border-border/70 bg-muted/20 divide-y divide-border/40 max-h-[320px] overflow-y-auto">
                                         {filteredModels.map((m) => {
-                                            const bare = m.id.includes("/")
-                                                ? m.id.split("/").slice(1).join("/")
-                                                : m.id;
-                                            const isSelected = selectedModels.has(bare);
+                                            const isAvailable = isAlreadyAvailable(m.id);
+                                            const isSelected = selectedModels.has(m.id);
                                             return (
                                                 <label
                                                     key={m.id}
-                                                    className={`flex items-center gap-3 px-3 py-2.5 text-xs font-mono cursor-pointer transition-colors min-h-[44px] ${
-                                                        isSelected
-                                                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                                            : "active:bg-muted/60 text-foreground"
+                                                    className={`flex items-center gap-3 px-3 py-2 text-xs font-mono transition-colors min-h-[40px] ${
+                                                        isAvailable
+                                                            ? "opacity-50 cursor-not-allowed bg-muted/10 text-muted-foreground"
+                                                            : isSelected
+                                                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                                                            : "hover:bg-muted/40 active:bg-muted/60 text-foreground cursor-pointer"
                                                     }`}
                                                 >
                                                     <input
                                                         type="checkbox"
                                                         checked={isSelected}
-                                                        onChange={() => toggleModel(bare)}
-                                                        className="size-4 shrink-0 rounded border-border accent-emerald-500"
+                                                        disabled={isAvailable}
+                                                        onChange={() => !isAvailable && toggleModel(m.id)}
+                                                        className="size-4 shrink-0 rounded border-border accent-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed"
                                                     />
-                                                    <span className="truncate">{bare}</span>
+                                                    <span className="truncate flex-1">{m.id}</span>
+                                                    {isAvailable && (
+                                                        <span className="shrink-0 text-[10px] font-sans px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/60">
+                                                            Already available
+                                                        </span>
+                                                    )}
                                                 </label>
                                             );
                                         })}
                                     </div>
 
-                                    <p className="text-[11px] text-muted-foreground text-center">
-                                        {selectedModels.size} selected · {existingModels.length} available
-                                    </p>
+                                    {(() => {
+                                        const alreadyCount = filteredModels.filter((m) => isAlreadyAvailable(m.id)).length;
+                                        const newCount = filteredModels.length - alreadyCount;
+                                        return (
+                                            <p className="text-[11px] text-muted-foreground text-center">
+                                                {selectedModels.size} selected to import · {newCount} new
+                                                {alreadyCount > 0 ? ` (${alreadyCount} already available)` : ""}
+                                            </p>
+                                        );
+                                    })()}
                                 </>
                             )}
                         </div>

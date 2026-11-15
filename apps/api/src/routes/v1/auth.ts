@@ -14,6 +14,11 @@ AuthRouter.get("/auth/antigravity/callback", AuthController.Antigravity.Callback
 AuthRouter.post("/auth/antigravity/callback", AuthController.Antigravity.Callback);
 AuthRouter.post("/auth/antigravity/token", RequireAdmin, AuthController.Antigravity.ImportToken);
 
+AuthRouter.get("/auth/deepai/login", RequireAdmin, AuthController.DeepAI.OAuth);
+AuthRouter.get("/auth/deepai/callback", AuthController.DeepAI.Callback);
+AuthRouter.post("/auth/deepai/callback", AuthController.DeepAI.Callback);
+AuthRouter.post("/auth/deepai/token", RequireAdmin, AuthController.DeepAI.ImportToken);
+
 AuthRouter.post("/auth/commandcode/token", RequireAdmin, AuthController.CommandCode.ImportToken);
 
 AuthRouter.post("/auth/anthropic/token", RequireAdmin, AuthController.Anthropic.ImportToken);
