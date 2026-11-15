@@ -86,6 +86,12 @@ async function refreshProviderTokenOnce(providerId: string): Promise<RefreshResu
     }
 
     try {
+        if (typeof oauthClient.refreshTokens !== "function") {
+            return {
+                success: false,
+                error: "Provider does not support token refresh"
+            };
+        }
         const tokens = await oauthClient.refreshTokens(provider.refreshToken);
         const refreshedAt = Date.now();
         const expiresAt = tokens.expiresIn ? refreshedAt + tokens.expiresIn * 1000 : undefined;

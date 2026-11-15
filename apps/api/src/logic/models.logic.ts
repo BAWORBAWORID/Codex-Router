@@ -42,8 +42,7 @@ export class ModelsLogic {
             Merged.set(ComboModel.toLowerCase(), {
                 id: VirtualModelId,
                 object: "model",
-                owned_by: "srouter",
-                custom: true
+                owned_by: "srouter"
             });
         }
 
@@ -82,8 +81,7 @@ export class ModelsLogic {
             Merged.set(Id.toLowerCase(), {
                 id: Id,
                 object: "model",
-                owned_by: Alias,
-                custom: true
+                owned_by: Alias
             });
         }
         return Array.from(Merged.values());

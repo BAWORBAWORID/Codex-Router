@@ -34,7 +34,16 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
     const authProviderId = provider?.id === "codebuddy-cn" ? "codebuddy-cn" : baseId;
     const isQoder = baseId === "qoder";
     const isCodeBuddy = baseId === "codebuddy";
-    const isPolling = isQoder || isCodeBuddy;
+    const isFreebuff = baseId === "freebuff";
+    const isPolling = isQoder || isCodeBuddy || isFreebuff;
+
+    useEffect(() => {
+        if (open && isFreebuff) {
+            setActiveTab("pat");
+        } else if (open && !isQoder && !isCodeBuddy) {
+            setActiveTab("oauth");
+        }
+    }, [open, isFreebuff, isQoder, isCodeBuddy]);
 
     // Fetch backend-registered PKCE OAuth session without auto-opening popup
     useEffect(() => {
@@ -60,6 +69,8 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                   ? "/v1/auth/deepai/login?format=json"
                   : baseId === "qoder"
                     ? "/v1/auth/qoder/login?format=json"
+                  : baseId === "freebuff"
+                    ? "/v1/auth/freebuff/login?format=json"
                   : baseId === "codebuddy"
                     ? `/v1/auth/${authProviderId}/login?format=json`
                     : baseId === "claude" || baseId === "anthropic"
@@ -127,7 +138,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                 const pollUrl =
                     baseId === "codebuddy"
                         ? `/v1/auth/${authProviderId}/poll?state=${encodeURIComponent(oauthState)}`
-                        : `/v1/auth/qoder/poll?state=${encodeURIComponent(oauthState)}`;
+                        : baseId === "freebuff"
+                          ? `/v1/auth/freebuff/poll?state=${encodeURIComponent(oauthState)}`
+                          : `/v1/auth/qoder/poll?state=${encodeURIComponent(oauthState)}`;
                 const res = await api.get<{ status: AuthPollStatus; provider?: ProviderConfig }>(
                     pollUrl
                 );
@@ -261,33 +274,37 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                     </button>
                 </div>
 
-                {/* Optional Tab Switcher for Qoder or CodeBuddy */}
-                {(isQoder || isCodeBuddy) && (
+                {/* Optional Tab Switcher for Qoder, CodeBuddy, or Freebuff */}
+                {(isQoder || isCodeBuddy || isFreebuff) && (
                     <div className="flex border-b border-border/60 text-xs font-mono">
                         <button
                             type="button"
-                            onClick={() => setActiveTab("oauth")}
+                            onClick={() => setActiveTab(isFreebuff ? "pat" : "oauth")}
                             className={`flex items-center gap-1.5 px-3 py-1.5 border-b-2 transition-colors cursor-pointer ${
-                                activeTab === "oauth"
+                                activeTab === (isFreebuff ? "pat" : "oauth")
                                     ? "border-foreground text-foreground font-semibold"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
-                            <Globe className="size-3.5" />
-                            <span>Browser Login</span>
+                            {isFreebuff ? <Key className="size-3.5" /> : <Globe className="size-3.5" />}
+                            <span>{isFreebuff ? "Token / List Import" : "Browser Login"}</span>
                         </button>
                         <button
                             type="button"
-                            onClick={() => setActiveTab("pat")}
+                            onClick={() => setActiveTab(isFreebuff ? "oauth" : "pat")}
                             className={`flex items-center gap-1.5 px-3 py-1.5 border-b-2 transition-colors cursor-pointer ${
-                                activeTab === "pat"
+                                activeTab === (isFreebuff ? "oauth" : "pat")
                                     ? "border-foreground text-foreground font-semibold"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
-                            <Key className="size-3.5" />
+                            {isFreebuff ? <Globe className="size-3.5" /> : <Key className="size-3.5" />}
                             <span>
-                                {isCodeBuddy ? "Access Token" : "Personal Access Token (PAT)"}
+                                {isFreebuff
+                                    ? "Browser Login"
+                                    : isCodeBuddy
+                                      ? "Access Token"
+                                      : "Personal Access Token (PAT)"}
                             </span>
                         </button>
                     </div>
@@ -311,7 +328,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                       ? "Waiting for Qoder browser authorization…"
                                       : isCodeBuddy
                                         ? "Waiting for CodeBuddy browser authorization…"
-                                        : "Waiting for popup authorization…"}
+                                        : isFreebuff
+                                          ? "Waiting for Freebuff browser authorization…"
+                                          : "Waiting for popup authorization…"}
                             </span>
                         </div>
 
@@ -394,12 +413,16 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                     <form onSubmit={handlePatSubmit} className="space-y-4 text-xs font-mono">
                         <div className="space-y-1.5">
                             <label className="font-semibold text-foreground block font-sans text-xs">
-                                {isCodeBuddy
-                                    ? "CodeBuddy Access Token"
-                                    : "Personal Access Token (PAT)"}
+                                {isFreebuff
+                                    ? "Freebuff Auth Token (Single or List)"
+                                    : isCodeBuddy
+                                      ? "CodeBuddy Access Token"
+                                      : "Personal Access Token (PAT)"}
                             </label>
                             <p className="text-[11px] text-muted-foreground font-sans">
-                                {isCodeBuddy ? (
+                                {isFreebuff ? (
+                                    "Paste 1 token atau beberapa token (satu baris per token) dari Freebuff / Codebuff."
+                                ) : isCodeBuddy ? (
                                     "Masukkan Access Token / Bearer Token dari akun CodeBuddy Anda."
                                 ) : (
                                     <>
@@ -415,13 +438,23 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                     </>
                                 )}
                             </p>
-                            <input
-                                type="password"
-                                placeholder={isCodeBuddy ? "eyJhbGciOi..." : "pt-..."}
-                                value={patInput}
-                                onChange={(e) => setPatInput(e.target.value)}
-                                className="w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                            />
+                            {isFreebuff ? (
+                                <textarea
+                                    rows={4}
+                                    placeholder={"eyJhbGciOi...\neyJhbGciOi...\n(satu token per baris)"}
+                                    value={patInput}
+                                    onChange={(e) => setPatInput(e.target.value)}
+                                    className="w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-y"
+                                />
+                            ) : (
+                                <input
+                                    type="password"
+                                    placeholder={isCodeBuddy ? "eyJhbGciOi..." : "pt-..."}
+                                    value={patInput}
+                                    onChange={(e) => setPatInput(e.target.value)}
+                                    className="w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                                />
+                            )}
                         </div>
 
                         <div className="pt-3 border-t border-border/60 flex items-center justify-end gap-3 font-sans">
@@ -439,9 +472,11 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                             >
                                 {patMutation.isPending
                                     ? "Connecting…"
-                                    : isCodeBuddy
-                                      ? "Connect CodeBuddy"
-                                      : "Connect PAT"}
+                                    : isFreebuff
+                                      ? "Import Token / List"
+                                      : isCodeBuddy
+                                        ? "Connect CodeBuddy"
+                                        : "Connect PAT"}
                             </button>
                         </div>
                     </form>

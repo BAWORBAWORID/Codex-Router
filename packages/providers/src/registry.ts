@@ -421,6 +421,7 @@ export class ProviderRegistry {
 
         for (const { providerId, alias, models } of results) {
             for (const model of models) {
+                if ((model as { locked?: boolean }).locked) continue;
                 const bareId = stripModelPrefix(model.id, alias, providerId);
                 const id = `${alias}/${bareId}`;
                 if (seenIds.has(id)) continue;

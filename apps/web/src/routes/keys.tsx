@@ -114,7 +114,7 @@ function KeysPage() {
                 updating={Boolean(updatingId)}
                 onOpenChange={(open) => !open && setKeyToEdit(null)}
                 onSubmit={async (id, data) => {
-                    await updateKey(id, data);
+                    return await updateKey(id, data);
                 }}
             />
 

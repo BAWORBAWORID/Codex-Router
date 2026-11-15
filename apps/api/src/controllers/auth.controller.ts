@@ -74,7 +74,7 @@ async function CallbackFor(
 
 async function ImportTokenFor(
     handler: AuthProviderHandler,
-    importLogic: (body: TokenImportParams) => ProviderConfig,
+    importLogic: (body: TokenImportParams) => ProviderConfig | ProviderConfig[],
     c: Context
 ): Promise<Response> {
     const rawBody = await c.req.json().catch(() => null);
@@ -324,6 +324,40 @@ export const AuthController = {
             ImportTokenFor(
                 AuthHandlers.Qoder,
                 (b) => AuthLogic.processProviderTokenImport("qoder", b),
+                c
+            )
+    },
+
+    Freebuff: {
+        OAuth: async (c: Context): Promise<Response> => {
+            try {
+                const result = await AuthLogic.initiateFreebuffOAuth();
+                const format = c.req.query("format");
+                if (format === "json") {
+                    return Ok(c, {
+                        authorizeUrl: result.authorizeUrl,
+                        state: result.state
+                    });
+                }
+                return c.redirect(result.authorizeUrl);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Internal Server Error";
+                return Err(c, `Failed to initiate Freebuff login: ${message}`, 500);
+            }
+        },
+        Poll: async (c: Context): Promise<Response> => {
+            const state = await ExtractState(c);
+            if (!state) {
+                return Err(c, "Missing state parameter", 400);
+            }
+
+            const result = await AuthLogic.pollFreebuffDeviceToken(state);
+            return Ok(c, result);
+        },
+        ImportToken: (c: Context): Promise<Response> =>
+            ImportTokenFor(
+                AuthHandlers.Freebuff,
+                (b) => AuthLogic.processProviderTokenImport("freebuff", b),
                 c
             )
     }

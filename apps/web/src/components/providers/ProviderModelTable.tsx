@@ -18,6 +18,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Copy,
+    Lock,
     Star,
     Trash2,
     X
@@ -265,12 +266,20 @@ export function ProviderModelTable({
                 header: "Status",
                 cell: ({ row }) => {
                     const isFav = isFavorite(row.original.id);
+                    const isLocked = Boolean((row.original as ModelObject & { locked?: boolean }).locked);
                     return (
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10.5px] font-semibold">
-                                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span>Active</span>
-                            </span>
+                            {isLocked ? (
+                                <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[10.5px] font-semibold" title="Locked by provider (Paid plan required)">
+                                    <Lock className="size-3 text-amber-500" />
+                                    <span>Locked</span>
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10.5px] font-semibold">
+                                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span>Active</span>
+                                </span>
+                            )}
                             {isFav && (
                                 <span className="hidden md:inline-flex items-center gap-0.5 rounded-[4px] bg-amber-500/10 px-1.5 py-0.2 text-[9.5px] font-bold text-amber-500 border border-amber-500/20">
                                     ★ Pinned

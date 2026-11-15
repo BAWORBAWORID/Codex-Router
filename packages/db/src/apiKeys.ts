@@ -139,12 +139,12 @@ export function updateAPIKeyDB(
     data: {
         name?: string;
         enabled?: boolean;
-        rate_limit?: number;
-        quota_limit?: number;
-        credit_limit?: number;
-        rateLimit?: number;
-        quotaLimit?: number;
-        creditLimit?: number;
+        rate_limit?: number | null;
+        quota_limit?: number | null;
+        credit_limit?: number | null;
+        rateLimit?: number | null;
+        quotaLimit?: number | null;
+        creditLimit?: number | null;
         allowed_models?: string[] | null;
     }
 ): APIKeyZod | null {
@@ -166,17 +166,17 @@ export function updateAPIKeyDB(
     const rateLimit = data.rate_limit ?? data.rateLimit;
     if (rateLimit !== undefined) {
         fields.push("rate_limit = ?");
-        values.push(rateLimit);
+        values.push(rateLimit ?? 0);
     }
     const quotaLimit = data.quota_limit ?? data.quotaLimit;
     if (quotaLimit !== undefined) {
         fields.push("quota_limit = ?");
-        values.push(quotaLimit);
+        values.push(quotaLimit ?? 0);
     }
     const creditLimit = data.credit_limit ?? data.creditLimit;
     if (creditLimit !== undefined) {
         fields.push("credit_limit = ?");
-        values.push(creditLimit);
+        values.push(creditLimit ?? 0);
     }
     if (data.allowed_models !== undefined) {
         fields.push("allowed_models = ?");

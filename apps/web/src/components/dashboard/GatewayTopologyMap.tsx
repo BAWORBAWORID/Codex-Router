@@ -41,7 +41,8 @@ type SelectedNodeInfo = {
 };
 
 function CentralCoreHubNode({ data, selected }: NodeProps) {
-    const isTokenSaverActive = Boolean(data.tokenSaverEnabled);
+    const isMasterEnabled = Boolean(data.tokenSaverEnabled);
+    const isTokenSaverActive = Boolean(data.tokenSaverActive);
     const hasActiveTraffic = Boolean(data.hasActiveTraffic);
 
     return (
@@ -84,8 +85,8 @@ function CentralCoreHubNode({ data, selected }: NodeProps) {
                 </div>
                 <div className="flex items-center justify-between rounded-md bg-secondary/40 px-2 py-1">
                     <span className="text-muted-foreground">Token Saver</span>
-                    <span className={`font-semibold ${isTokenSaverActive ? "text-foreground" : "text-muted-foreground"}`}>
-                        {isTokenSaverActive ? "Active" : "Bypassed"}
+                    <span className={`font-semibold ${isTokenSaverActive ? "text-emerald-500" : isMasterEnabled ? "text-amber-500" : "text-muted-foreground"}`}>
+                        {isTokenSaverActive ? "Active" : isMasterEnabled ? "Standby" : "Bypassed"}
                     </span>
                 </div>
             </div>
@@ -142,6 +143,13 @@ const nodeTypes = { centralCore: CentralCoreHubNode, orbitProvider: OrbitProvide
 function NodeDetailInspector({ selectedNode, onClose, tokenSaverSettings, onTriggerTestRequest }: { selectedNode: SelectedNodeInfo | null; onClose: () => void; tokenSaverSettings: any; onTriggerTestRequest?: (providerId: string) => void }) {
     if (!selectedNode) return null;
     const apiBase = getGatewayBaseUrl();
+    const isMasterEnabled = Boolean(tokenSaverSettings?.enabled);
+    const isAnyRuleActive = Boolean(
+        tokenSaverSettings?.compressToolOutput?.enabled ||
+        tokenSaverSettings?.lazySeniorDev?.enabled ||
+        tokenSaverSettings?.compressLlmOutput?.enabled
+    );
+    const isTokenSaverActive = isMasterEnabled && isAnyRuleActive;
 
     return (
         <aside aria-label="Node Inspector" className="absolute right-3 top-3 bottom-3 z-30 w-80 max-w-[calc(100%-1.5rem)] rounded-xl border border-border/90 bg-card p-4 font-mono shadow-lg flex flex-col justify-between overflow-hidden">
@@ -166,7 +174,7 @@ function NodeDetailInspector({ selectedNode, onClose, tokenSaverSettings, onTrig
                             <p className="text-[11px] text-muted-foreground leading-relaxed">High-speed proxy middleware hub dispatching requests directly to surrounding upstream providers.</p>
                             <div className="space-y-1.5 rounded-lg border border-border/60 bg-secondary/30 p-2.5 text-[10.5px]">
                                 <div className="flex justify-between"><span className="text-muted-foreground">Base Gateway URL:</span><code className="text-foreground font-bold text-[10px] truncate max-w-[120px]">{apiBase}</code></div>
-                                <div className="flex justify-between"><span className="text-muted-foreground">Token Compression:</span><span className="font-semibold text-foreground">{tokenSaverSettings?.enabled ? "Active" : "Disabled"}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Token Compression:</span><span className={`font-semibold ${isTokenSaverActive ? "text-emerald-500" : isMasterEnabled ? "text-amber-500" : "text-muted-foreground"}`}>{isTokenSaverActive ? "Active" : isMasterEnabled ? "Standby" : "Disabled"}</span></div>
                                 <div className="flex justify-between"><span className="text-muted-foreground">Circuit Breaker:</span><span className="font-semibold text-emerald-500">Nominal</span></div>
                                 <div className="flex justify-between"><span className="text-muted-foreground">Overhead Latency:</span><span className="font-semibold text-foreground">&lt; 1.2ms</span></div>
                             </div>
@@ -243,7 +251,7 @@ function CanvasControls() {
     );
 }
 
-function ProviderMatrixView({ displayedProviders, isTokenSaverActive, activeProviderIds }: { displayedProviders: any[]; isTokenSaverActive: boolean; activeProviderIds: Set<string> }) {
+function ProviderMatrixView({ displayedProviders, isTokenSaverActive, isMasterEnabled, activeProviderIds }: { displayedProviders: any[]; isTokenSaverActive: boolean; isMasterEnabled: boolean; activeProviderIds: Set<string> }) {
     const apiBase = getGatewayBaseUrl();
     return (
         <div className="p-3 font-mono space-y-3">
@@ -257,7 +265,7 @@ function ProviderMatrixView({ displayedProviders, isTokenSaverActive, activeProv
                 </div>
                 <div className="flex items-center gap-3 text-[10.5px]">
                     <div className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500" /><span className="text-muted-foreground">Circuit Breaker:</span><span className="font-semibold text-foreground">Nominal</span></div>
-                    <div className="flex items-center gap-1.5"><span className="text-muted-foreground">Token Saver:</span><span className="font-semibold text-foreground">{isTokenSaverActive ? "Active" : "Bypassed"}</span></div>
+                    <div className="flex items-center gap-1.5"><span className="text-muted-foreground">Token Saver:</span><span className={`font-semibold ${isTokenSaverActive ? "text-emerald-500" : isMasterEnabled ? "text-amber-500" : "text-foreground"}`}>{isTokenSaverActive ? "Active" : isMasterEnabled ? "Standby" : "Bypassed"}</span></div>
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
@@ -367,13 +375,30 @@ function GatewayTopologyCanvas() {
         setActivePings((prev) => ({ ...prev, [providerId.toLowerCase()]: { latency: Math.floor(Math.random() * 150 + 50), expiresAt: Date.now() + 5000 } }));
     }, []);
 
+    const isMasterEnabled = Boolean(tokenSaverSettings?.enabled);
+    const isAnyRuleActive = Boolean(
+        tokenSaverSettings?.compressToolOutput?.enabled ||
+        tokenSaverSettings?.lazySeniorDev?.enabled ||
+        tokenSaverSettings?.compressLlmOutput?.enabled
+    );
+    const isTokenSaverActive = isMasterEnabled && isAnyRuleActive;
+
     const { nodes, edges } = useMemo(() => {
         const nodeList: Node[] = [];
         const edgeList: Edge[] = [];
         const centerX = 0;
         const centerY = 0;
 
-        nodeList.push({ id: "node-core", type: "centralCore", position: { x: -128, y: -50 }, data: { tokenSaverEnabled: tokenSaverSettings?.enabled, hasActiveTraffic: hasAnyActiveTraffic } });
+        nodeList.push({
+            id: "node-core",
+            type: "centralCore",
+            position: { x: -128, y: -50 },
+            data: {
+                tokenSaverEnabled: isMasterEnabled,
+                tokenSaverActive: isTokenSaverActive,
+                hasActiveTraffic: hasAnyActiveTraffic
+            }
+        });
 
         const providerCount = displayedProviders.length;
         const radiusX = Math.max(300, Math.min(420, 260 + providerCount * 10));
@@ -406,7 +431,7 @@ function GatewayTopologyCanvas() {
         });
 
         return { nodes: nodeList, edges: edgeList };
-    }, [displayedProviders, tokenSaverSettings?.enabled, activePings, hasAnyActiveTraffic]);
+    }, [displayedProviders, isMasterEnabled, isTokenSaverActive, activePings, hasAnyActiveTraffic]);
 
     const handleNodeClick = useCallback((_: any, node: Node) => {
         setSelectedNode({ type: node.type === "orbitProvider" ? "provider" : "core", id: node.id, data: node.data });
@@ -450,7 +475,7 @@ function GatewayTopologyCanvas() {
                     <NodeDetailInspector selectedNode={selectedNode} onClose={() => setSelectedNode(null)} tokenSaverSettings={tokenSaverSettings} onTriggerTestRequest={triggerTestRequest} />
                 </div>
             ) : (
-                <ProviderMatrixView displayedProviders={displayedProviders} isTokenSaverActive={Boolean(tokenSaverSettings?.enabled)} activeProviderIds={activeProviderIdsSet} />
+                <ProviderMatrixView displayedProviders={displayedProviders} isTokenSaverActive={isTokenSaverActive} isMasterEnabled={isMasterEnabled} activeProviderIds={activeProviderIdsSet} />
             )}
         </section>
     );

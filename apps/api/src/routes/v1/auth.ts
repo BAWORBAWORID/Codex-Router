@@ -54,3 +54,8 @@ AuthRouter.post("/auth/qoder/callback", AuthController.Qoder.Callback);
 AuthRouter.get("/auth/qoder/poll", RequireAdmin, AuthController.Qoder.Poll);
 AuthRouter.post("/auth/qoder/poll", RequireAdmin, AuthController.Qoder.Poll);
 AuthRouter.post("/auth/qoder/token", RequireAdmin, AuthController.Qoder.ImportToken);
+
+AuthRouter.get("/auth/freebuff/login", RequireAdmin, AuthController.Freebuff.OAuth);
+AuthRouter.get("/auth/freebuff/poll", RequireAdmin, AuthController.Freebuff.Poll);
+AuthRouter.post("/auth/freebuff/poll", RequireAdmin, AuthController.Freebuff.Poll);
+AuthRouter.post("/auth/freebuff/token", RequireAdmin, AuthController.Freebuff.ImportToken);

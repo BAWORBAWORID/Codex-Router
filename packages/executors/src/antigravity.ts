@@ -235,8 +235,9 @@ export class AntigravityExecutor implements AIProvider {
                 Object.keys(available).map((k) => (k.startsWith("models/") ? k.slice(7) : k))
             );
             for (const m of models) {
+                const mappedId = parseAntigravityModelName(m.id);
                 (m as ModelObject & { locked?: boolean }).locked =
-                    availableKeys.size > 0 && !availableKeys.has(m.id);
+                    availableKeys.size > 0 && !availableKeys.has(m.id) && !availableKeys.has(mappedId);
             }
 
             return models;

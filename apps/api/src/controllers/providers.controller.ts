@@ -78,7 +78,7 @@ export class ProvidersController {
         }
 
         try {
-            const Model = ProvidersLogic.AddCustomModel(ProviderId, Parsed.data.model_id);
+            const Model = await ProvidersLogic.AddCustomModel(ProviderId, Parsed.data.model_id);
             return Ok(c, Model, 201);
         } catch (error) {
             return Err(c, error instanceof Error ? error.message : "Invalid model payload", 400);
@@ -111,7 +111,7 @@ export class ProvidersController {
         }
 
         try {
-            const Result = ProvidersLogic.ImportModels(ProviderId, Parsed.data.models);
+            const Result = await ProvidersLogic.ImportModels(ProviderId, Parsed.data.models);
             return Ok(c, {
                 imported: Result.imported.length,
                 skipped: Result.skipped.length,

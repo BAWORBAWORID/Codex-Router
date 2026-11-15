@@ -1,4 +1,4 @@
-import { Bot, Check, Copy, Star, Trash2 } from "lucide-react";
+import { Bot, Check, Copy, Lock, Star, Trash2 } from "lucide-react";
 import type { ModelObject } from "@codex/types";
 import { useFavorites } from "@/hooks/useFavorites";
 
@@ -89,10 +89,17 @@ export function ProviderModelCard({ model, copied, onCopy, onDelete }: ProviderM
             {/* Footer */}
             <div className="pt-2.5 border-t border-[var(--line)] flex items-center justify-between text-[10.5px]">
                 <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>Active</span>
-                    </span>
+                    {Boolean((model as ModelObject & { locked?: boolean }).locked) ? (
+                        <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold" title="Locked by provider (Paid plan required)">
+                            <Lock className="size-3 text-amber-500" />
+                            <span>Locked</span>
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Active</span>
+                        </span>
+                    )}
                     {isFav && (
                         <span className="inline-flex items-center gap-0.5 rounded-[4px] bg-amber-500/10 px-1.5 py-0.2 text-[9.5px] font-bold text-amber-500 border border-amber-500/20">
                             ★ Pinned

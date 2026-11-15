@@ -69,9 +69,9 @@ export interface OpenAIExecutorOptions {
 export class OpenAIExecutor implements AIProvider {
     id: string;
     name: string;
-    private baseUrl: string;
-    private apiKey: string;
-    private accessToken: string;
+    protected baseUrl: string;
+    protected apiKey: string;
+    protected accessToken: string;
 
     constructor(options: OpenAIExecutorOptions = {}) {
         this.id = options.id ?? "openai";

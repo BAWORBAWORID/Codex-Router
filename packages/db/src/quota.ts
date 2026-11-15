@@ -68,6 +68,7 @@ const ALL_ANTIGRAVITY_QUOTA_MODELS: AntigravityQuotaModelDef[] = [
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (Thinking)", upstreamBaseId: "claude-sonnet-4-6" },
     { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 (Thinking)", upstreamBaseId: "claude-opus-4-6-thinking" },
     { id: "gpt-oss-120b-medium", name: "GPT-OSS 120B (Medium)", upstreamBaseId: "gpt-oss-120b-medium" },
+    { id: "gemini-3.8", name: "Gemini 3.8", upstreamBaseId: "gemini-3.8-flash-tiered" },
     { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash", upstreamBaseId: "gemini-3.8-flash-tiered" },
     { id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)", upstreamBaseId: "gemini-3.8-flash-tiered" },
     { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)", upstreamBaseId: "gemini-3.8-flash-high" },
@@ -295,6 +296,82 @@ export async function fetchCodeBuddyCNLiveQuota(
     };
 }
 
+export async function fetchFreebuffLiveQuota(
+    providerId: string,
+    accountName: string,
+    token: string,
+    enabled = true
+): Promise<ProviderQuotaAccount> {
+    if (!token) {
+        throw new Error("Freebuff quota requires a valid access token");
+    }
+
+    const res = await fetch("https://www.codebuff.com/api/v1/usage", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "User-Agent": "Freebuff/0.2.36 (Linux x64)"
+        },
+        body: JSON.stringify({
+            fingerprintId: "enhanced-ZkMpsbmc8OVlDnAOqk9RGZzWv52kg6AZaZgp5ICGuqI"
+        })
+    });
+
+    if (!res.ok) {
+        throw new Error(`Freebuff quota fetch failed: HTTP ${res.status}`);
+    }
+
+    const data = (await res.json()) as {
+        type?: string;
+        usage?: number;
+        remainingBalance?: number;
+        next_quota_reset?: string;
+        balanceBreakdown?: Record<string, number>;
+    };
+
+    const remaining = typeof data.remainingBalance === "number" ? data.remainingBalance : 0;
+    const usage = typeof data.usage === "number" ? data.usage : 0;
+    const total = remaining + usage > 0 ? remaining + usage : 100;
+    const used = Math.max(0, total - remaining);
+    const percentageVal = Math.round((remaining / total) * 100);
+
+    const quotas: LiveModelQuotaItem[] = [
+        {
+            name: "Credits Balance",
+            used: Math.round(used * 100) / 100,
+            limit: Math.round(total * 100) / 100,
+            percentage: `${percentageVal}%`,
+            percentageValue: percentageVal,
+            resetIn: formatResetIn(data.next_quota_reset),
+            resetTime: data.next_quota_reset,
+            status: remaining <= 0 ? "exhausted" : percentageVal <= 20 ? "warning" : "ok"
+        }
+    ];
+
+    const UsageRows = getProviderModelUsageDB(providerId);
+    const UsageMetrics: ProviderUsageMetric[] = UsageRows.map((row) => ({
+        model: row.model,
+        totalRequests: row.totalRequests,
+        totalTokens: row.totalTokens,
+        promptTokens: row.promptTokens,
+        completionTokens: row.completionTokens,
+        lastUsedAt: row.lastUsedAt ? new Date(row.lastUsedAt).toISOString() : null
+    }));
+
+    return {
+        id: providerId,
+        provider: "Freebuff",
+        providerId: "freebuff",
+        account: accountName,
+        enabled,
+        quotaType: "live_provider_quota",
+        totalQuotas: quotas.length,
+        quotas,
+        usageMetrics: UsageMetrics
+    };
+}
+
 export async function getProviderQuotaAccount(p: {
     id: string;
     providerId: string;
@@ -315,11 +392,26 @@ export async function getProviderQuotaAccount(p: {
     const IsCodeBuddy =
         !IsCodeBuddyCN &&
         (isProviderBaseId(p.providerId, "codebuddy") || isProviderBaseId(p.id, "codebuddy"));
+    const IsFreebuff =
+        isProviderBaseId(p.providerId, "freebuff") || isProviderBaseId(p.id, "freebuff");
 
     const Token = p.accessToken || p.apiKey || "";
 
     if (IsCodeBuddy) {
         throw new Error("CodeBuddy (international) does not expose a live quota endpoint");
+    }
+
+    if (IsFreebuff && Token) {
+        try {
+            return await fetchFreebuffLiveQuota(
+                p.id,
+                p.name || "Freebuff Account",
+                Token,
+                p.enabled
+            );
+        } catch {
+            // Fall back to local usage_logged if upstream fetch fails
+        }
     }
 
     if (IsCodeBuddyCN) {

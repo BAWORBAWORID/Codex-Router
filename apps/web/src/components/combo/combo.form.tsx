@@ -52,17 +52,17 @@ export default function ComboForm({
         setSelectedModels(initial_models.length > 0 ? initial_models.map(toModelItem) : []);
     }, [open, initial_combo_name, initial_models]);
 
-    const existingComboNames = useMemo(
-        () =>
-            Array.from(
-                new Set(
-                    existing_fallbacks
-                        .filter((f) => f.sourceModel && !f.sourceModel.includes("*"))
-                        .map((f) => f.sourceModel)
-                )
-            ),
-        [existing_fallbacks]
-    );
+    const existingComboNames = useMemo(() => {
+        const set = new Set(
+            existing_fallbacks
+                .filter((f) => f.sourceModel && !f.sourceModel.includes("*"))
+                .map((f) => f.sourceModel)
+        );
+        if (comboName.trim()) {
+            set.add(comboName.trim());
+        }
+        return Array.from(set);
+    }, [existing_fallbacks, comboName]);
 
     const isNameValid = COMBO_NAME_REGEX.test(comboName.trim());
     const canSubmit = isNameValid && selectedModels.length > 0 && !saving;

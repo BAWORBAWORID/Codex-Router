@@ -24,13 +24,35 @@ function TokenSaverPage() {
         );
     }
 
+    const isAnyRuleActive = Boolean(
+        settings.compressToolOutput?.enabled ||
+        settings.lazySeniorDev?.enabled ||
+        settings.compressLlmOutput?.enabled
+    );
+
     return (
         <div className="space-y-6 pb-12 font-mono">
-            {/* Top Banner */}
-            <TokenSaverHeader />
+            {/* Top Banner with Master Switch */}
+            <TokenSaverHeader
+                enabled={settings.enabled}
+                isAnyRuleActive={isAnyRuleActive}
+                saving={saving}
+                onToggle={(enabled) => updateSettings({ enabled })}
+            />
+
+            {!settings.enabled && (
+                <div className="rounded-xl border border-border/70 bg-secondary/30 p-4 text-xs text-muted-foreground font-mono flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                        <span className="size-2 rounded-full bg-muted-foreground/60 shrink-0" />
+                        <span>
+                            <strong>Engine Bypassed:</strong> Master switch is OFF. All incoming prompts and tool outputs pass through untruncated without modification.
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* 2-Column Balanced Grid: Tool Output Compression & Prompt Optimizer */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch transition-opacity ${!settings.enabled ? "opacity-60" : "opacity-100"}`}>
                 {/* 1. Tool Output Compression (rtk) */}
                 <ToolCompressionCard
                     settings={settings.compressToolOutput}

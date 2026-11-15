@@ -23,9 +23,9 @@ export const CreateAPIKeySchema = z.object({
         })
         .min(1, "Field 'name' cannot be empty"),
     enabled: z.boolean().optional(),
-    rate_limit: z.number().int().nonnegative().optional(),
-    quota_limit: z.number().int().nonnegative().optional(),
-    credit_limit: z.number().nonnegative().optional(),
+    rate_limit: z.number().int().nonnegative().nullable().optional(),
+    quota_limit: z.number().int().nonnegative().nullable().optional(),
+    credit_limit: z.number().nonnegative().nullable().optional(),
     allowed_models: z.array(z.string().min(1)).nullable().optional()
 });
 
@@ -34,9 +34,9 @@ export type CreateAPIKeyZod = z.infer<typeof CreateAPIKeySchema>;
 export const UpdateAPIKeySchema = z.object({
     name: z.string().min(1, "Field 'name' cannot be empty").optional(),
     enabled: z.boolean().optional(),
-    rate_limit: z.number().int().nonnegative().optional(),
-    quota_limit: z.number().int().nonnegative().optional(),
-    credit_limit: z.number().nonnegative().optional(),
+    rate_limit: z.number().int().nonnegative().nullable().optional(),
+    quota_limit: z.number().int().nonnegative().nullable().optional(),
+    credit_limit: z.number().nonnegative().nullable().optional(),
     allowed_models: z.array(z.string().min(1)).nullable().optional()
 });
 

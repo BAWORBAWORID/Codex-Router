@@ -3,7 +3,8 @@ import {
     CODEBUDDY_BASE_URL,
     CODEBUDDY_CN_BASE_URL,
     CODEBUDDY_CN_DOMAIN,
-    CODEBUDDY_CN_USER_AGENT
+    CODEBUDDY_CN_USER_AGENT,
+    FREEBUFF_BASE_URL
 } from "@codex/constants";
 import {
     cleanupExpiredOAuthSessionsDB,
@@ -12,8 +13,8 @@ import {
     saveOAuthSessionDB,
     upsertProviderDB
 } from "@codex/db";
-import { CodeBuddyCNOAuth, CodeBuddyOAuth, generatePKCE, QoderOAuth } from "@codex/providers";
-import { CodeBuddyExecutor, QoderExecutor } from "@codex/executors";
+import { CodeBuddyCNOAuth, CodeBuddyOAuth, FreebuffOAuth, generatePKCE, QoderOAuth } from "@codex/providers";
+import { CodeBuddyExecutor, FreebuffExecutor, QoderExecutor } from "@codex/executors";
 import type { ProviderConfig } from "@codex/types";
 import { registry } from "@/services/registry.js";
 import {
@@ -178,11 +179,11 @@ async function ProcessOAuthCallbackFor(
     return providerConfig;
 }
 
-function ProcessTokenImportFor(
+function ProcessSingleTokenImport(
     handler: AuthProviderHandler,
-    params: TokenImportParams
+    params: TokenImportParams,
+    timestamp: number
 ): ProviderConfig {
-    const timestamp = Date.now();
     const accountId = params.id || `${handler.idPrefix}_${timestamp}`;
     const token = params.access_token || params.accessToken || "";
     const refreshToken = params.refresh_token || params.refreshToken;
@@ -225,6 +226,48 @@ function ProcessTokenImportFor(
     registry.registerProvider(providerInstance);
 
     return providerConfig;
+}
+
+function ProcessTokenImportFor(
+    handler: AuthProviderHandler,
+    params: TokenImportParams
+): ProviderConfig | ProviderConfig[] {
+    const rawToken = (params as any).tokens
+        ? (params as any).tokens
+        : params.access_token || params.accessToken || "";
+
+    const lines: string[] = Array.isArray(rawToken)
+        ? rawToken.map((t) => String(t).trim()).filter((t) => t.length > 0)
+        : typeof rawToken === "string"
+          ? rawToken
+                .split(/[\r\n]+/)
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0 && !s.startsWith("#"))
+          : [];
+
+    if (lines.length > 1) {
+        const configs: ProviderConfig[] = [];
+        const baseTimestamp = Date.now();
+        for (let i = 0; i < lines.length; i++) {
+            const singleToken = lines[i];
+            const subParams: TokenImportParams = {
+                ...params,
+                access_token: singleToken,
+                accessToken: singleToken,
+                name: params.name ? `${params.name} (${i + 1})` : undefined,
+                id: `${handler.idPrefix}_${baseTimestamp}_${i + 1}`
+            };
+            configs.push(ProcessSingleTokenImport(handler, subParams, baseTimestamp + i));
+        }
+        return configs;
+    }
+
+    const singleToken = lines.length === 1 ? lines[0] : (params.access_token || params.accessToken);
+    return ProcessSingleTokenImport(
+        handler,
+        { ...params, access_token: singleToken, accessToken: singleToken },
+        Date.now()
+    );
 }
 
 export async function InitiateCodeBuddyOAuth(): Promise<{ authorizeUrl: string; state: string }> {
@@ -440,10 +483,106 @@ export async function PollQoderDeviceToken(state: string): Promise<AuthPollResul
     };
 }
 
+export async function InitiateFreebuffOAuth(): Promise<{ authorizeUrl: string; state: string }> {
+    CleanupExpiredSessions();
+    const freebuffOAuth = new FreebuffOAuth();
+    const result = await freebuffOAuth.initiateLogin();
+
+    saveOAuthSessionDB({
+        state: result.fingerprintId,
+        codeVerifier: JSON.stringify({
+            fingerprintHash: result.fingerprintHash,
+            expiresAt: result.expiresAt
+        }),
+        clientId: "",
+        redirectUri: "",
+        createdAt: Date.now()
+    });
+
+    return {
+        authorizeUrl: result.loginUrl,
+        state: result.fingerprintId
+    };
+}
+
+export async function PollFreebuffDeviceToken(state: string): Promise<AuthPollResult> {
+    if (!state) {
+        return { status: AuthPollStatus.PENDING, error: "Missing state parameter" };
+    }
+
+    const session = getOAuthSessionDB(state);
+    if (!session) {
+        return { status: AuthPollStatus.PENDING, error: "Session expired or not found" };
+    }
+
+    let parsedMeta: { fingerprintHash: string; expiresAt: string };
+    try {
+        parsedMeta = JSON.parse(session.codeVerifier);
+    } catch {
+        return { status: AuthPollStatus.PENDING, error: "Invalid session metadata" };
+    }
+
+    const freebuffOAuth = new FreebuffOAuth();
+    let poll: Awaited<ReturnType<typeof freebuffOAuth.pollStatus>>;
+    try {
+        poll = await freebuffOAuth.pollStatus({
+            fingerprintId: state,
+            fingerprintHash: parsedMeta.fingerprintHash,
+            expiresAt: parsedMeta.expiresAt
+        });
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { status: AuthPollStatus.PENDING, error: msg };
+    }
+
+    if (!poll.success || !poll.tokens?.accessToken) {
+        return { status: AuthPollStatus.PENDING, error: poll.error };
+    }
+
+    deleteOAuthSessionDB(state);
+
+    const timestamp = Date.now();
+    const accountId = `freebuff_${timestamp}`;
+    const userEmail = poll.user?.email || "";
+    const userName = poll.user?.name || "";
+    const accountName = userEmail
+        ? `Freebuff (${userEmail})`
+        : userName
+          ? `Freebuff (${userName})`
+          : `Freebuff (Account #${timestamp.toString().slice(-4)})`;
+
+    const providerConfig = upsertProviderDB({
+        id: accountId,
+        providerId: "freebuff",
+        name: accountName,
+        category: "oauth",
+        protocol: "openai",
+        baseUrl: FREEBUFF_BASE_URL,
+        accessToken: poll.tokens.accessToken,
+        refreshToken: poll.tokens.refreshToken,
+        accountId: poll.tokens.accountId,
+        enabled: true,
+        createdAt: timestamp
+    });
+
+    const providerInstance = new FreebuffExecutor({
+        id: accountId,
+        name: accountName,
+        baseUrl: FREEBUFF_BASE_URL,
+        accessToken: poll.tokens.accessToken
+    });
+    registry.registerProvider(providerInstance);
+
+    return {
+        status: AuthPollStatus.OK,
+        provider: providerConfig
+    };
+}
+
 interface AuthProviderEntry {
     initiate?: (params: OAuthLoginParams) => OAuthLoginResult;
     callback?: (code: string, state: string) => Promise<ProviderConfig>;
-    importToken: (params: TokenImportParams) => ProviderConfig;
+    importToken: (params: TokenImportParams) => ProviderConfig | ProviderConfig[];
 }
 
 const authProviderEntries: Record<string, AuthProviderEntry> = {};
@@ -494,6 +633,10 @@ RegisterEntry("codebuddy-cn", {
     importToken: (params) => ProcessTokenImportFor(AuthHandlers.CodeBuddyCN, params)
 });
 
+RegisterEntry("freebuff", {
+    importToken: (params) => ProcessTokenImportFor(AuthHandlers.Freebuff, params)
+});
+
 for (const [key, handler] of [
     ["commandcode", AuthHandlers.CommandCode],
     ["anthropic", AuthHandlers.Anthropic],
@@ -513,7 +656,7 @@ export const AuthLogic = {
         authProviderEntries.openai.initiate!(params),
     processOAuthCallback: async (code: string, state: string): Promise<ProviderConfig> =>
         authProviderEntries.openai.callback!(code, state),
-    processTokenImport: (params: TokenImportParams): ProviderConfig =>
+    processTokenImport: (params: TokenImportParams): ProviderConfig | ProviderConfig[] =>
         authProviderEntries.openai.importToken(params),
 
     initiateProviderOAuth(providerKey: string, params: OAuthLoginParams): OAuthLoginResult {
@@ -532,7 +675,10 @@ export const AuthLogic = {
         return entry.callback(code, state);
     },
 
-    processProviderTokenImport(providerKey: string, params: TokenImportParams): ProviderConfig {
+    processProviderTokenImport(
+        providerKey: string,
+        params: TokenImportParams
+    ): ProviderConfig | ProviderConfig[] {
         const entry = authProviderEntries[providerKey];
         if (!entry) throw new Error(`Unknown auth provider: ${providerKey}`);
         return entry.importToken(params);
@@ -543,12 +689,16 @@ export const AuthLogic = {
     pollCodeBuddyDeviceToken: PollCodeBuddyDeviceToken,
     pollCodeBuddyCNDeviceToken: PollCodeBuddyCNDeviceToken,
     pollQoderDeviceToken: PollQoderDeviceToken,
+    initiateFreebuffOAuth: InitiateFreebuffOAuth,
+    pollFreebuffDeviceToken: PollFreebuffDeviceToken,
 
     InitiateCodeBuddyOAuth,
     InitiateCodeBuddyCNOAuth,
     PollCodeBuddyDeviceToken,
     PollCodeBuddyCNDeviceToken,
     PollQoderDeviceToken,
+    InitiateFreebuffOAuth,
+    PollFreebuffDeviceToken,
 
     initiateAntigravityOAuthPKCE: (params: OAuthLoginParams) =>
         AuthLogic.initiateProviderOAuth("antigravity", params),

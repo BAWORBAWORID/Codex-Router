@@ -480,11 +480,13 @@ function QuotaPage() {
                                                     </span>
                                                 </span>
 
-                                                {hasLiveQuotas && (
-                                                    <span className="inline-flex items-center rounded-[4px] bg-[var(--field)] border border-[var(--line)] px-1.5 py-0.2 text-[9.5px] font-semibold text-[var(--ink-2)]">
-                                                        {account.quotas!.length} quotas
-                                                    </span>
-                                                )}
+                                                {hasLiveQuotas &&
+                                                    account.providerId?.toLowerCase() !== "freebuff" &&
+                                                    account.provider?.toLowerCase() !== "freebuff" && (
+                                                        <span className="inline-flex items-center rounded-[4px] bg-[var(--field)] border border-[var(--line)] px-1.5 py-0.2 text-[9.5px] font-semibold text-[var(--ink-2)]">
+                                                            {account.quotas!.length} quotas
+                                                        </span>
+                                                    )}
                                             </div>
                                             <p className="text-[11px] text-[var(--ink-3)] mt-0.5">
                                                 Provider:{" "}

@@ -104,18 +104,17 @@ function maskKey(key: string): string {
 }
 
 function parseKeyPayload(form: KeyFormData): CreateAPIKeyZod & { enabled: boolean } {
-    const rate_num = form.rate_limit.trim() ? parseInt(form.rate_limit, 10) : undefined;
-    const quota_num = form.quota_limit.trim() ? parseInt(form.quota_limit, 10) : undefined;
-    const credit_num = form.credit_limit.trim() ? parseFloat(form.credit_limit) : undefined;
+    const rate_num = form.rate_limit.trim() ? parseInt(form.rate_limit, 10) : 0;
+    const quota_num = form.quota_limit.trim() ? parseInt(form.quota_limit, 10) : 0;
+    const credit_num = form.credit_limit.trim() ? parseFloat(form.credit_limit) : 0;
     const allowed_models =
         form.model_scope === "restricted" && form.selected_models.length > 0
             ? form.selected_models
             : null;
 
-    const rate_limit = Number.isFinite(rate_num) && (rate_num ?? 0) >= 0 ? rate_num : undefined;
-    const quota_limit = Number.isFinite(quota_num) && (quota_num ?? 0) >= 0 ? quota_num : undefined;
-    const credit_limit =
-        Number.isFinite(credit_num) && (credit_num ?? 0) >= 0 ? credit_num : undefined;
+    const rate_limit = Number.isFinite(rate_num) && rate_num >= 0 ? rate_num : 0;
+    const quota_limit = Number.isFinite(quota_num) && quota_num >= 0 ? quota_num : 0;
+    const credit_limit = Number.isFinite(credit_num) && credit_num >= 0 ? credit_num : 0;
 
     return {
         name: form.name.trim(),
@@ -463,10 +462,10 @@ export function KeyFormDialog({
         const payload = getPayload();
         if (!payload.name) return;
 
-        await onSubmit(payload);
+        const res = await onSubmit(payload);
         if (!apiKey) {
             resetForm();
-        } else {
+        } else if (res !== null) {
             onOpenChange(false);
         }
     };
@@ -614,7 +613,7 @@ export function EditKeyDialog({
             submittingLabel="Saving…"
             isSubmitting={updating}
             onSubmit={(payload) =>
-                active_key ? onSubmit(active_key.id, payload) : Promise.resolve()
+                active_key ? onSubmit(active_key.id, payload) : Promise.resolve(null)
             }
         />
     );

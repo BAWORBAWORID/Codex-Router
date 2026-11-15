@@ -47,6 +47,7 @@ export const ANTIGRAVITY_MODELS: AntigravityModelDefinition[] = [
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (Thinking)" },
     { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 (Thinking)" },
     { id: "gpt-oss-120b-medium", name: "GPT-OSS 120B (Medium)" },
+    { id: "gemini-3.8", name: "Gemini 3.8" },
     { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash" },
     { id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)" },
     { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)" },

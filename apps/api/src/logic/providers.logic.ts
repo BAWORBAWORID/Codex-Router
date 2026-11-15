@@ -302,7 +302,7 @@ export class ProvidersLogic {
         return ProviderDefinitionFromConfig(Config);
     }
 
-    public static AddCustomModel(ProviderId: string, ModelId: string): ModelObject {
+    public static async AddCustomModel(ProviderId: string, ModelId: string): Promise<ModelObject> {
         const Id = ProviderId.toLowerCase();
         if (
             !DEFAULT_PROVIDER_MAP[Id] &&
@@ -334,6 +334,28 @@ export class ProvidersLogic {
         );
         if (isBuiltIn) {
             throw new Error(`Model '${CleanModelId}' is already available as a built-in model for this provider`);
+        }
+
+        // Check if model is locked upstream
+        const matchingProviders = Array.from(registry.getAllProviders().values()).filter(
+            (P) =>
+                P.id.toLowerCase() === Id ||
+                P.id.toLowerCase().startsWith(`${Id}_`) ||
+                P.id.toLowerCase().startsWith(`${Id}-`)
+        );
+        for (const P of matchingProviders) {
+            try {
+                const list = P.listModels ? await P.listModels() : [];
+                const found = list.find((m) => {
+                    const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
+                    return m.id.toLowerCase() === CleanModelId.toLowerCase() || bare.toLowerCase() === CleanModelId.toLowerCase();
+                });
+                if (found && (found as ModelObject & { locked?: boolean }).locked) {
+                    throw new Error(`Model '${CleanModelId}' is locked and cannot be added (paid plan required)`);
+                }
+            } catch (err) {
+                if (err instanceof Error && err.message.includes("is locked")) throw err;
+            }
         }
 
         addCustomModelDB(Id, CleanModelId);
@@ -390,10 +412,10 @@ export class ProvidersLogic {
         }));
     }
 
-    public static ImportModels(ProviderId: string, ModelIds: string[]): {
+    public static async ImportModels(ProviderId: string, ModelIds: string[]): Promise<{
         imported: ModelObject[];
         skipped: string[];
-    } {
+    }> {
         const Id = ProviderId.toLowerCase();
         if (
             !DEFAULT_PROVIDER_MAP[Id] &&
@@ -425,13 +447,20 @@ export class ProvidersLogic {
                 P.id.toLowerCase().startsWith(`${Id}_`) ||
                 P.id.toLowerCase().startsWith(`${Id}-`)
         );
+        const lockedKeys = new Set<string>();
         for (const P of matchingProviders) {
             try {
-                const list = P.listModels ? P.listModels() : [];
+                const list = P.listModels ? await P.listModels() : [];
                 for (const m of list) {
-                    existingKeys.add(m.id.toLowerCase());
-                    const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
-                    existingKeys.add(bare.toLowerCase());
+                    if ((m as ModelObject & { locked?: boolean }).locked) {
+                        lockedKeys.add(m.id.toLowerCase());
+                        const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
+                        lockedKeys.add(bare.toLowerCase());
+                    } else {
+                        existingKeys.add(m.id.toLowerCase());
+                        const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
+                        existingKeys.add(bare.toLowerCase());
+                    }
                 }
             } catch {}
         }
@@ -456,6 +485,16 @@ export class ProvidersLogic {
             }
 
             const bare = CleanModelId.includes("/") ? CleanModelId.split("/").slice(1).join("/") : CleanModelId;
+            if (
+                lockedKeys.has(CleanModelId.toLowerCase()) ||
+                lockedKeys.has(bare.toLowerCase()) ||
+                lockedKeys.has(Trimmed.toLowerCase())
+            ) {
+                // Locked model cannot be added / imported
+                skipped.push(raw);
+                continue;
+            }
+
             if (
                 existingKeys.has(CleanModelId.toLowerCase()) ||
                 existingKeys.has(bare.toLowerCase()) ||
@@ -517,6 +556,7 @@ export class ProvidersLogic {
             deduped.set(bare.toLowerCase(), {
                 id: bare,
                 object: "model",
+                name: m.name || prev?.name,
                 owned_by: providerAlias(ProviderId.toLowerCase()),
                 locked: prev ? (prev.locked && Boolean(locked)) : Boolean(locked)
             });

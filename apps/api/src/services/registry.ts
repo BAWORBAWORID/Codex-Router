@@ -7,6 +7,7 @@ import {
     CODEBUDDY_CN_USER_AGENT,
     DEFAULT_PROVIDERS,
     DEEPAI_BASE_URL,
+    FREEBUFF_BASE_URL,
     GOROUTER_BASE_URL,
     isProviderBaseId,
     isSeedProvider,
@@ -28,6 +29,7 @@ import {
     CodexExecutor,
     CommandCodeExecutor,
     DeepSeekScraperExecutor,
+    FreebuffExecutor,
     GoRouterExecutor,
     KiroExecutor,
     OpenCodeZenExecutor,
@@ -218,6 +220,17 @@ export function loadSavedProvidersFromDB(): void {
                         id: p.id || p.providerId,
                         name: p.name,
                         baseUrl: baseUrl || DEEPAI_BASE_URL,
+                        apiKey: p.apiKey,
+                        accessToken: p.accessToken
+                    })
+                );
+                break;
+            case isProviderBaseId(p.id, "freebuff"):
+                registry.registerProvider(
+                    new FreebuffExecutor({
+                        id: p.id || p.providerId,
+                        name: p.name,
+                        baseUrl: baseUrl || FREEBUFF_BASE_URL,
                         apiKey: p.apiKey,
                         accessToken: p.accessToken
                     })

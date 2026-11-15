@@ -5,6 +5,7 @@ export * from "./neosantara.js";
 export * from "./gorouter.js";
 export * from "./bluesminds.js";
 export * from "./deepai.js";
+export * from "./freebuff.js";
 export * from "./seekai.js";
 export * from "./tabitoken.js";
 export * from "./tokenrouter.js";

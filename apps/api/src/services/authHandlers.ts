@@ -12,6 +12,7 @@ import {
     CODEX_OAUTH_CLIENT_ID,
     CODEX_OAUTH_REDIRECT_URI,
     COMMANDCODE_BASE_URL,
+    FREEBUFF_BASE_URL,
     GOROUTER_BASE_URL,
     SEEKAI_BASE_URL,
     TABITOKEN_BASE_URL,
@@ -26,6 +27,7 @@ import {
     CodeBuddyExecutor,
     CodexExecutor,
     CommandCodeExecutor,
+    FreebuffExecutor,
     GoRouterExecutor,
     QoderExecutor,
     SeekAIExecutor,
@@ -38,6 +40,7 @@ import {
     ClaudeOAuth,
     CodeBuddyCNOAuth,
     CodeBuddyOAuth,
+    FreebuffOAuth,
     OpenAICodexOAuth,
     QoderOAuth
 } from "@codex/providers";
@@ -370,11 +373,36 @@ const bai: AuthProviderHandler = {
         new BAIExecutor({ id, name, baseUrl: baseUrl || BAI_BASE_URL, apiKey })
 };
 
+const freebuff: AuthProviderHandler = {
+    providerId: "freebuff",
+    displayName: "Freebuff",
+    category: "oauth",
+    protocol: "openai",
+    idPrefix: "freebuff",
+    oauthSuccessMessage: "Login Freebuff Berhasil!",
+    tokenImportMessage: "Freebuff Auth Token saved directly to SQLite database!",
+    oauthClass: FreebuffOAuth,
+    mapOAuthTokens: (tokens) => ({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        accountId: tokens.accountId
+    }),
+    mapImportTokens: (params) => ({
+        accessToken: params.accessToken,
+        refreshToken: params.refreshToken,
+        accountId: params.accountId
+    }),
+    buildExecutor: ({ id, name, accessToken }) =>
+        new FreebuffExecutor({ id, name, accessToken, baseUrl: FREEBUFF_BASE_URL })
+};
+
 export const AuthHandlers = {
     OpenAI: openaiCodex,
     Antigravity: antigravity,
     DeepAI: deepai,
     deepai: deepai,
+    Freebuff: freebuff,
+    freebuff: freebuff,
     antigravity: antigravity,
     CommandCode: commandCode,
     Anthropic: anthropic,
@@ -404,5 +432,6 @@ export const authProviderHandlers: Record<string, AuthProviderHandler> = {
     tokenrouter: AuthHandlers.TokenRouter,
     codebuddy: AuthHandlers.CodeBuddy,
     "codebuddy-cn": AuthHandlers.CodeBuddyCN,
+    freebuff: AuthHandlers.Freebuff,
     bai: AuthHandlers.BAI
 };

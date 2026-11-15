@@ -30,25 +30,6 @@ const ANTIGRAVITY_STATIC_MODELS: ComboModelItem[] = ANTIGRAVITY_MODELS.map((m) =
     providerName: "Antigravity"
 }));
 
-const FALLBACK_PROVIDER_MODELS: Record<string, ComboModelItem[]> = {
-    openai_codex: [
-        { id: "openai_codex/gpt-4o", name: "GPT-4o", providerId: "openai_codex", providerName: "OpenAI" },
-        { id: "openai_codex/gpt-4o-mini", name: "GPT-4o Mini", providerId: "openai_codex", providerName: "OpenAI" },
-        { id: "openai_codex/o1", name: "o1", providerId: "openai_codex", providerName: "OpenAI" },
-        { id: "openai_codex/o3-mini", name: "o3-mini", providerId: "openai_codex", providerName: "OpenAI" }
-    ],
-    openai: [
-        { id: "openai/gpt-4o", name: "GPT-4o", providerId: "openai", providerName: "OpenAI" },
-        { id: "openai/gpt-4o-mini", name: "GPT-4o Mini", providerId: "openai", providerName: "OpenAI" },
-        { id: "openai/o1", name: "o1", providerId: "openai", providerName: "OpenAI" },
-        { id: "openai/o3-mini", name: "o3-mini", providerId: "openai", providerName: "OpenAI" }
-    ],
-    anthropic: [
-        { id: "anthropic/claude-3-7-sonnet", name: "Claude 3.7 Sonnet (Thinking)", providerId: "anthropic", providerName: "Anthropic" },
-        { id: "anthropic/claude-3-5-sonnet", name: "Claude 3.5 Sonnet", providerId: "anthropic", providerName: "Anthropic" },
-        { id: "anthropic/claude-3-5-haiku", name: "Claude 3.5 Haiku", providerId: "anthropic", providerName: "Anthropic" }
-    ]
-};
 
 export function getModelCapabilities(modelId: string, modelName?: string) {
     const combined = `${modelId} ${modelName || ""}`.toLowerCase();
@@ -132,20 +113,6 @@ export default function ComboModelPickerModal({
             models: ComboModelItem[];
         }> = [];
 
-        if (existingCombos.length > 0) {
-            result.push({
-                id: "combos",
-                name: "Combos",
-                isCombo: true,
-                models: existingCombos.map((combo) => ({
-                    id: combo,
-                    name: combo,
-                    providerId: "combos",
-                    providerName: "Combos"
-                }))
-            });
-        }
-
         const providerModelsMap = new Map<string, ComboModelItem[]>();
 
         providerModelsMap.set("antigravity", ANTIGRAVITY_STATIC_MODELS);
@@ -161,6 +128,29 @@ export default function ComboModelPickerModal({
                 modelId = parts.slice(1).join("/");
             } else if (m.owned_by) {
                 providerId = m.owned_by;
+            }
+
+            const normalizedProviderId = providerId.toLowerCase();
+            const normalizedModelId = m.id.toLowerCase();
+            const cleanModelId = modelId.toLowerCase();
+
+            // Exclude virtual router models (srouter, codex) and existing combos
+            if (
+                normalizedProviderId === "srouter" ||
+                normalizedProviderId === "codex" ||
+                m.owned_by?.toLowerCase() === "srouter" ||
+                m.owned_by?.toLowerCase() === "codex" ||
+                normalizedModelId.startsWith("srouter/") ||
+                normalizedModelId.startsWith("codex/") ||
+                existingCombos.some(
+                    (c) =>
+                        c.toLowerCase() === normalizedModelId ||
+                        c.toLowerCase() === cleanModelId ||
+                        `srouter/${c.toLowerCase()}` === normalizedModelId ||
+                        `codex/${c.toLowerCase()}` === normalizedModelId
+                )
+            ) {
+                continue;
             }
 
             const kp = KNOWN_PROVIDERS.find((p) => p.id === providerId || p.alias === providerId);
@@ -183,12 +173,8 @@ export default function ComboModelPickerModal({
             }
         }
 
-        for (const kp of KNOWN_PROVIDERS) {
-            if (kp.id === "antigravity") continue;
-            if (!providerModelsMap.has(kp.id) && FALLBACK_PROVIDER_MODELS[kp.id]) {
-                providerModelsMap.set(kp.id, FALLBACK_PROVIDER_MODELS[kp.id]!);
-            }
-        }
+        // Only include models from active providers that actually returned models.
+        // Unconnected fallback providers are omitted to keep combo choices strictly to working connections.
 
         for (const [providerId, models] of providerModelsMap.entries()) {
             const kp = KNOWN_PROVIDERS.find((p) => p.id === providerId || p.alias === providerId);

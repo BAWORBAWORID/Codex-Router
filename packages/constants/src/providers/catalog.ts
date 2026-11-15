@@ -4,6 +4,7 @@ import { ARCEE_PROVIDER } from "./arcee.js";
 import { BAI_PROVIDER } from "./bai.js";
 import { BLUESMINDS_PROVIDER } from "./bluesminds.js";
 import { DEEPAI_PROVIDER } from "./deepai.js";
+import { FREEBUFF_PROVIDER } from "./freebuff.js";
 import { BYTEPLUS_PROVIDER } from "./byteplus.js";
 import { CEREBRAS_PROVIDER } from "./cerebras.js";
 import { CHUTES_PROVIDER } from "./chutes.js";
@@ -61,6 +62,7 @@ export const KNOWN_PROVIDERS = [
     GOROUTER_PROVIDER,
     BLUESMINDS_PROVIDER,
     DEEPAI_PROVIDER,
+    FREEBUFF_PROVIDER,
     SEEKAI_PROVIDER,
     TABITOKEN_PROVIDER,
     TOKENROUTER_PROVIDER,
