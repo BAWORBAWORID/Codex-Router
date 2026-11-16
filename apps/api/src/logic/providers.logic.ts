@@ -21,6 +21,7 @@ import {
     upsertProviderDB
 } from "@codex/db";
 import { loadSavedProvidersFromDB, registry } from "@/services/registry.js";
+import { pruneDeepAIProvider } from "@/services/tokenRefresh.js";
 import { AssertPublicUrl } from "@/utils/ssrf.js";
 
 export interface GroupedCatalog {
@@ -231,6 +232,11 @@ export class ProvidersLogic {
         const CustomModels = ProvidersLogic.ListCustomModels(ProviderId);
         LiveModels = mergeProviderModels(ProviderId, LiveModels, CustomModels);
 
+        // For openrouter, only show unlocked models in available models to prevent 400+ locked clutter
+        if (ProviderId.toLowerCase() === "openrouter") {
+            LiveModels = LiveModels.filter((m) => !(m as { locked?: boolean }).locked);
+        }
+
         return {
             ...Provider,
             connections: Connections,
@@ -354,6 +360,10 @@ export class ProvidersLogic {
                     throw new Error(`Model '${CleanModelId}' is locked and cannot be added (paid plan required)`);
                 }
             } catch (err) {
+                if (err instanceof Error && err.message.includes("DEEPAI_AUTH_EXPIRED")) {
+                    pruneDeepAIProvider(P.id);
+                    throw new Error("DeepAI account session expired and was automatically removed. Please reconnect the account.");
+                }
                 if (err instanceof Error && err.message.includes("is locked")) throw err;
             }
         }
@@ -462,7 +472,11 @@ export class ProvidersLogic {
                         existingKeys.add(bare.toLowerCase());
                     }
                 }
-            } catch {}
+            } catch (err) {
+                if (err instanceof Error && err.message.includes("DEEPAI_AUTH_EXPIRED")) {
+                    pruneDeepAIProvider(P.id);
+                }
+            }
         }
 
         for (const raw of ModelIds) {

@@ -141,10 +141,13 @@ async function ProcessOAuthCallbackFor(
     };
 
     const timestamp = Date.now();
-    const { accountId, accountName } = BuildAccountIdentity(handler, timestamp, {
+    let { accountId, accountName } = BuildAccountIdentity(handler, timestamp, {
         accessToken: tokens.accessToken,
         idToken: (rawTokens as any).idToken || (rawTokens as any).id_token
     });
+    if (handler.providerId === "deepai" && tokens.accountId) {
+        accountName = tokens.accountId.includes("@") ? `DeepAI (${tokens.accountId})` : `DeepAI (${tokens.accountId}@gmail.com)`;
+    }
 
     const baseUrl = handler.baseUrl ? handler.baseUrl() : undefined;
 

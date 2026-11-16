@@ -11,6 +11,7 @@ export * from "./deepseek-scraper.js";
 export * from "./kiro.js";
 export * from "./commandcode.js";
 export * from "./gorouter.js";
+export * from "./openrouter.js";
 export * from "./opencode.js";
 export * from "./openai.js";
 export * from "./qoder.js";

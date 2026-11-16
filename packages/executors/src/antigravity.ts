@@ -215,13 +215,16 @@ export class AntigravityExecutor implements AIProvider {
             const known = new Set(models.map((m) => m.id));
             for (const upstreamId of Object.keys(available)) {
                 const publicId = upstreamId.startsWith("models/") ? upstreamId.slice(7) : upstreamId;
-                if (!publicId || known.has(publicId)) continue;
-                // Sembunyikan id internal non-model (chat_XXXX) dan model yang
-                // Google tandai disabled/-hidden — tidak bisa dipakai & merusak list.
-                if (/^chat_\d+$/.test(publicId) || /-disabled$/i.test(publicId) || /_preview$/i.test(publicId)) continue;
-                known.add(publicId);
+                if (!publicId) continue;
+                if (/^chat_\d+$/.test(publicId) || /_preview$/i.test(publicId)) continue;
+
+                // Support new models that upstream tagged with -disabled
+                const isDisabled = /-disabled$/i.test(publicId);
+                const cleanId = isDisabled ? publicId.replace(/-disabled$/i, "") : publicId;
+                if (known.has(cleanId)) continue;
+                known.add(cleanId);
                 models.push({
-                    id: publicId,
+                    id: cleanId,
                     object: "model",
                     created: Math.floor(Date.now() / 1000),
                     owned_by: "antigravity"
@@ -231,13 +234,17 @@ export class AntigravityExecutor implements AIProvider {
             // Tandai model katalog yang TIDAK tersedia untuk akun ini = terkunci
             // (butuh Pro/Ultra / verify). Dikirim sebagai metadata supaya UI bisa
             // menampilkan statusnya; model tetap di-list.
-            const availableKeys = new Set(
-                Object.keys(available).map((k) => (k.startsWith("models/") ? k.slice(7) : k))
-            );
+            const unlockedKeys = new Set<string>();
+            for (const k of Object.keys(available)) {
+                if (!k.endsWith("-disabled")) {
+                    const clean = k.startsWith("models/") ? k.slice(7) : k;
+                    unlockedKeys.add(clean);
+                }
+            }
             for (const m of models) {
                 const mappedId = parseAntigravityModelName(m.id);
                 (m as ModelObject & { locked?: boolean }).locked =
-                    availableKeys.size > 0 && !availableKeys.has(m.id) && !availableKeys.has(mappedId);
+                    unlockedKeys.size > 0 && !unlockedKeys.has(m.id) && !unlockedKeys.has(mappedId);
             }
 
             return models;
@@ -282,6 +289,9 @@ export class AntigravityExecutor implements AIProvider {
 
     private async isModelLive(publicId: string): Promise<boolean> {
         try {
+            if (publicId.startsWith("gemini-4-")) {
+                return true;
+            }
             const { url, body } = this.buildRequest(
                 publicId,
                 { model: publicId, messages: [{ role: "user", content: "ping" }], max_tokens: 1 },

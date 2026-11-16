@@ -20,8 +20,9 @@ import type {
     ToolCall,
     UsageInfo
 } from "@codex/types";
+import { providerBaseId } from "@codex/constants";
 import { registry } from "@/services/registry.js";
-import { ensureFreshToken } from "@/services/tokenRefresh.js";
+import { ensureFreshToken, pruneDeepAIProvider } from "@/services/tokenRefresh.js";
 import { executeInterceptedSearch, shouldInterceptToolCall } from "@/services/toolInterceptor.js";
 
 const MAX_INTERCEPT_DEPTH = 3;
@@ -268,6 +269,13 @@ export class ChatLogic {
                     fallbackReason = err instanceof Error ? err.message : String(err);
                 }
 
+                // Auto-delete expired DeepAI accounts on 401
+                const providerId = currentModel.split("/")[0] || "default";
+                const statusCode = ExtractStatusCode(err);
+                if (statusCode === 401 && providerBaseId(providerId) === "deepai") {
+                    pruneDeepAIProvider(providerId);
+                }
+
                 if (i < candidates.length - 1) {
                     continue;
                 }
@@ -462,6 +470,13 @@ export class ChatLogic {
                 lastError = err instanceof Error ? err : (err as ErrorWithStatus);
                 if (!fallbackReason) {
                     fallbackReason = err instanceof Error ? err.message : String(err);
+                }
+
+                // Auto-delete expired DeepAI accounts on 401
+                const providerId2 = currentModel.split("/")[0] || "default";
+                const statusCode2 = ExtractStatusCode(err);
+                if (statusCode2 === 401 && providerBaseId(providerId2) === "deepai") {
+                    pruneDeepAIProvider(providerId2);
                 }
 
                 if (!yieldedAny && i < candidates.length - 1) {

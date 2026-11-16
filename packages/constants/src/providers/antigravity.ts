@@ -52,7 +52,10 @@ export const ANTIGRAVITY_MODELS: AntigravityModelDefinition[] = [
     { id: "gemini-3.8-flash-tiered", name: "Gemini 3.8 Flash (Tiered)" },
     { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)" },
     { id: "gemini-3.8-flash-medium", name: "Gemini 3.8 Flash (Medium)" },
-    { id: "gemini-3.8-flash-low", name: "Gemini 3.8 Flash (Low)" }
+    { id: "gemini-3.8-flash-low", name: "Gemini 3.8 Flash (Low)" },
+    { id: "gemini-4-argon", name: "Gemini 4 Argon" },
+    { id: "gemini-4-carbon", name: "Gemini 4 Carbon" },
+    { id: "gemini-4-hydrogen", name: "Gemini 4 Hydrogen" }
 ];
 
 export const ANTIGRAVITY_MODEL_IDS: string[] = ANTIGRAVITY_MODELS.map((m) => m.id);

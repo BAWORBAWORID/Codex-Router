@@ -1,5 +1,5 @@
 import { providerTypeForAlias } from "@codex/constants";
-import { getAllProvidersDB, updateProviderTokensDB, getProviderByIdDB } from "@codex/db";
+import { getAllProvidersDB, updateProviderTokensDB, getProviderByIdDB, deleteProviderDB } from "@codex/db";
 import type { AIProvider, ProviderConfig } from "@codex/types";
 import { authProviderHandlers } from "@/services/authHandlers.js";
 import { registry } from "./registry.js";
@@ -122,9 +122,60 @@ async function refreshProviderTokenOnce(providerId: string): Promise<RefreshResu
  * Sweep all OAuth providers and refresh accounts that are due.
  * Runs on an interval; also callable manually (e.g. after startup).
  */
+
+/**
+ * Check if a DeepAI session token is expired (401 from upstream).
+ * If expired, delete the provider account from SQLite and unregister it from the live registry.
+ */
+export async function checkAndPruneDeepAIAccount(provider: ProviderConfig): Promise<boolean> {
+    const token = provider.accessToken || provider.apiKey;
+    if (!token) return false;
+
+    try {
+        const res = await fetch("https://api.deepai.org/deepai_code/models", {
+            method: "GET",
+            headers: {
+                accept: "application/json",
+                "user-agent": "deepai-gateway/1.0",
+                "X-DeepAI-Code-Theos": "4",
+                "X-DeepAI-Code-Instance": "a1b2c3d4e5f67890a1b2c3d4e5f67890",
+                "Api-Key": token
+            },
+            signal: AbortSignal.timeout(6000)
+        });
+
+        if (res.status === 401) {
+            pruneDeepAIProvider(provider.id, provider.name);
+            return true;
+        }
+    } catch (err) {
+        // Network error, don't delete on transient failure
+    }
+    return false;
+}
+
+/**
+ * Immediately delete an expired DeepAI provider from DB and live registry.
+ * Safe to call multiple times.
+ */
+export function pruneDeepAIProvider(providerId: string, providerName?: string): void {
+    if (providerId === "deepai") return; // never delete seed/base
+    console.warn(`[TokenRefresh] DeepAI account ${providerName || providerId} (${providerId}) is EXPIRED (HTTP 401). Auto-deleting...`);
+    deleteProviderDB(providerId);
+    registry.unregisterProvider(providerId);
+}
+
 export async function sweepExpiredTokens(): Promise<RefreshResult[]> {
     const providers = getAllProvidersDB().filter((p) => p.enabled && p.refreshToken);
     const results: RefreshResult[] = [];
+
+    // Auto-prune expired DeepAI accounts
+    const allProviders = getAllProvidersDB().filter((p) => p.enabled);
+    for (const p of allProviders) {
+        if (p.providerId === "deepai" && p.id !== "deepai") {
+            await checkAndPruneDeepAIAccount(p);
+        }
+    }
 
     for (const provider of providers) {
         if (!isDueForRefresh(provider)) continue;

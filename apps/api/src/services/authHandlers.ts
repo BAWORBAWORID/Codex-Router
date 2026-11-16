@@ -14,6 +14,7 @@ import {
     COMMANDCODE_BASE_URL,
     FREEBUFF_BASE_URL,
     GOROUTER_BASE_URL,
+    OPENROUTER_BASE_URL,
     SEEKAI_BASE_URL,
     TABITOKEN_BASE_URL,
     TOKENROUTER_BASE_URL
@@ -29,6 +30,7 @@ import {
     CommandCodeExecutor,
     FreebuffExecutor,
     GoRouterExecutor,
+    OpenRouterExecutor,
     QoderExecutor,
     SeekAIExecutor,
     TabiTokenExecutor,
@@ -228,6 +230,24 @@ const goRouter: AuthProviderHandler = {
         new GoRouterExecutor({ id, name, baseUrl: baseUrl || GOROUTER_BASE_URL, apiKey })
 };
 
+const openRouter: AuthProviderHandler = {
+    providerId: "openrouter",
+    displayName: "OpenRouter",
+    category: "api_key",
+    protocol: "openai",
+    idPrefix: "openrouter",
+    baseUrl: () => OPENROUTER_BASE_URL,
+    oauthSuccessMessage: "",
+    tokenImportMessage: "OpenRouter API Key registered and saved directly to SQLite database!",
+    mapImportTokens: (params) => ({
+        apiKey: params.accessToken,
+        refreshToken: params.refreshToken,
+        baseUrl: params.baseUrl
+    }),
+    buildExecutor: ({ id, name, baseUrl, apiKey }) =>
+        new OpenRouterExecutor({ id, name, baseUrl: baseUrl || OPENROUTER_BASE_URL, apiKey })
+};
+
 const bluesMinds: AuthProviderHandler = {
     providerId: "bluesminds",
     displayName: "BluesMinds",
@@ -409,6 +429,7 @@ export const AuthHandlers = {
     Claude: claude,
     Qoder: qoder,
     GoRouter: goRouter,
+    OpenRouter: openRouter,
     BluesMinds: bluesMinds,
     SeekAI: seekAI,
     TabiToken: tabiToken,
@@ -426,6 +447,7 @@ export const authProviderHandlers: Record<string, AuthProviderHandler> = {
     claude: AuthHandlers.Claude,
     qoder: AuthHandlers.Qoder,
     gorouter: AuthHandlers.GoRouter,
+    openrouter: AuthHandlers.OpenRouter,
     bluesminds: AuthHandlers.BluesMinds,
     seekai: AuthHandlers.SeekAI,
     tabitoken: AuthHandlers.TabiToken,
