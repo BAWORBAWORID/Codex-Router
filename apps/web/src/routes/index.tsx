@@ -6,6 +6,7 @@ import {
     Boxes,
     Coins,
     CircleDollarSign,
+    Database,
     RefreshCw,
     TriangleAlert
 } from "lucide-react";
@@ -133,7 +134,7 @@ function DashboardPage() {
             {/* 4 KPI Telemetry Tiles */}
             <section
                 aria-label="Gateway usage summary"
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5"
             >
                 <StatCard
                     label="Total Requests"
@@ -160,6 +161,17 @@ function DashboardPage() {
                             : "0 in · 0 out"
                     }
                     icon={Coins}
+                />
+                <StatCard
+                    label="Cached Tokens"
+                    value={stats ? formatCompactNumber(stats.totalCachedTokens ?? 0) : "0"}
+                    tooltip={
+                        stats
+                            ? `${(stats.totalCachedTokens ?? 0).toLocaleString()} cached tokens (total)`
+                            : undefined
+                    }
+                    detail="Total cached tokens"
+                    icon={Database}
                 />
                 <StatCard
                     label="Estimated Cost"
