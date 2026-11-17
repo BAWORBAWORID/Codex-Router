@@ -1,7 +1,7 @@
 // Shared retry/backoff helpers for upstream providers with transient errors.
 
-const MAX_RETRY_AFTER_MS = 10000;
-const TRANSIENT_RETRY_MAX_MS = 15000;
+const MAX_RETRY_AFTER_MS = 240000; // 4 minutes max retry delay (aligned with Antigravity CLI)
+const TRANSIENT_RETRY_MAX_MS = 60000;
 
 const TRANSIENT_ERROR_PATTERNS = [
     /high\s+traffic/i,
