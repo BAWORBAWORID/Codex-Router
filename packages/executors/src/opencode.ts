@@ -15,6 +15,13 @@ import type {
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
 
 const OPENCODE_ZEN_MAX_TOKENS = 512;
+const MODELS_DEV_API_URL = "https://models.dev/api.json";
+
+interface ModelsDevModelEntry {
+    name?: string;
+    status?: string;
+    cost?: { input?: number; output?: number };
+}
 
 export interface OpenCodeZenExecutorOptions extends OpenAIExecutorOptions {}
 
@@ -42,6 +49,42 @@ function clampMaxTokens(req: ChatCompletionRequest): ChatCompletionRequest {
 function randomIPv4(): string {
     const octet = () => Math.floor(Math.random() * 256);
     return `${1 + octet()}.${octet()}.${octet()}.${1 + octet()}`;
+}
+
+async function fetchModelsDevZenModels(providerId: string): Promise<(ModelObject & { locked?: boolean })[]> {
+    try {
+        const res = await fetch(MODELS_DEV_API_URL, {
+            headers: {
+                accept: "application/json",
+                "user-agent": `srouter/${GLOBAL_VERSION}`
+            }
+        });
+        if (!res.ok) return [];
+
+        const data = (await res.json()) as Record<string, { models?: Record<string, ModelsDevModelEntry> }>;
+        const models = data?.opencode?.models || {};
+        const baseId = providerAlias(providerBaseId(providerId));
+
+        return Object.entries(models)
+            .filter(([id, m]) => {
+                if (!m || typeof m !== "object") return false;
+                if (m.status && String(m.status).toLowerCase() === "deprecated") return false;
+                return true;
+            })
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([id, m]) => {
+                const free = id.toLowerCase().endsWith("-free");
+                return {
+                    id: `${baseId}/${id}`,
+                    object: "model" as const,
+                    name: m.name,
+                    owned_by: baseId,
+                    locked: !free
+                };
+            });
+    } catch {
+        return [];
+    }
 }
 
 export class OpenCodeZenExecutor extends OpenAIExecutor {
@@ -75,15 +118,29 @@ export class OpenCodeZenExecutor extends OpenAIExecutor {
     override async listModels(): Promise<ModelObject[]> {
         const liveModels = await super.listModels();
         if (liveModels && liveModels.length > 0) {
-            return withAliasPrefix(liveModels, this.id);
+            return withAliasPrefix(liveModels, this.id).map((m) => {
+                const bare = m.id.includes("/") ? m.id.slice(m.id.indexOf("/") + 1) : m.id;
+                const free = bare.toLowerCase().endsWith("-free");
+                return { ...m, locked: !free };
+            });
+        }
+
+        const catalogModels = await fetchModelsDevZenModels(this.id);
+        if (catalogModels.length > 0) {
+            return catalogModels;
         }
 
         const baseId = providerAlias(providerBaseId(this.id));
-        return OPENCODE_ZEN_MODELS.map((m) => ({
-            id: `${baseId}/${m.id}`,
-            object: "model",
-            owned_by: baseId
-        }));
+        return OPENCODE_ZEN_MODELS.map((m) => {
+            const free = m.id.toLowerCase().endsWith("-free");
+            return {
+                id: `${baseId}/${m.id}`,
+                object: "model" as const,
+                name: m.name,
+                owned_by: baseId,
+                locked: !free
+            };
+        });
     }
 
     override async chatCompletion(req: ChatCompletionRequest): Promise<ChatCompletionResponse> {

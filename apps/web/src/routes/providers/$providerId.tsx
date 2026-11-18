@@ -242,9 +242,14 @@ function ProviderDetailPage() {
         return provider.models.filter((m) => !deletedModelIds.includes(m.id));
     }, [provider?.models, deletedModelIds]);
 
+    const availableModels = useMemo(
+        () => activeModels.filter((m) => !(m as { locked?: boolean }).locked),
+        [activeModels]
+    );
+
     const filteredModels = useMemo(() => {
-        return activeModels.filter((m) => m.id.toLowerCase().includes(modelSearch.toLowerCase()));
-    }, [activeModels, modelSearch]);
+        return availableModels.filter((m) => m.id.toLowerCase().includes(modelSearch.toLowerCase()));
+    }, [availableModels, modelSearch]);
 
     const sortedModels = useMemo(() => {
         return [...filteredModels].sort((a, b) => {
@@ -435,7 +440,7 @@ function ProviderDetailPage() {
                     <div>
                         <div className="flex items-center gap-2">
                             <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                                Available Models ({activeModels.length})
+                                Available Models ({availableModels.length})
                             </h2>
                             {deletedModelIds.length > 0 && (
                                 <button

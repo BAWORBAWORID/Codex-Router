@@ -237,6 +237,25 @@ export class ProvidersLogic {
             LiveModels = LiveModels.filter((m) => !(m as { locked?: boolean }).locked);
         }
 
+        // For opencode_zen, only expose unlocked/free models in Available Models.
+        // Non-free models remain locked and must not appear in the available list.
+        if (BaseIdOf(ProviderId).toLowerCase() === "opencode_zen") {
+            const hasSupportingKey = Connections.some((C) => {
+                if (!C.enabled) return false;
+                const key = String(C.apiKey || C.accessToken || "").trim().toLowerCase();
+                return key.length > 0 && key !== "public";
+            });
+            LiveModels = LiveModels
+                .map((m) => {
+                    const id = String(m.id || "").toLowerCase();
+                    const bare = id.includes("/") ? id.split("/").slice(1).join("/") : id;
+                    const isFree = bare.endsWith("-free");
+                    const locked = hasSupportingKey ? false : !isFree;
+                    return { ...m, locked };
+                })
+                .filter((m) => !(m as { locked?: boolean }).locked && String(m.id || "").toLowerCase().split("/").pop()?.endsWith("-free"));
+        }
+
         return {
             ...Provider,
             connections: Connections,
@@ -545,13 +564,15 @@ export class ProvidersLogic {
                 P.id.startsWith(`${ProviderId}-`)
         );
 
-        if (MatchingProviders.length === 0) {
+        const isOpenCodeZen = BaseIdOf(ProviderId).toLowerCase() === "opencode_zen";
+
+        if (MatchingProviders.length === 0 && !isOpenCodeZen) {
             throw new Error(
                 `No active connection found for provider '${ProviderId}'. Add an API key or connect an account first.`
             );
         }
 
-        const allModels: ModelObject[] = [];
+        const allModels: (ModelObject & { locked?: boolean })[] = [];
         for (const P of MatchingProviders) {
             try {
                 const models = await registry.getProviderModels(P, true);
@@ -561,10 +582,51 @@ export class ProvidersLogic {
             }
         }
 
+        const hasSupportingZenKey = isOpenCodeZen
+            ? getAllProvidersDB().some((C) => {
+                  if (!C.enabled) return false;
+                  if (BaseIdOf(C.providerId || C.id).toLowerCase() !== "opencode_zen") return false;
+                  const key = String(C.apiKey || C.accessToken || "").trim().toLowerCase();
+                  return key.length > 0 && key !== "public";
+              })
+            : false;
+
+        // OpenCode Zen: supplement with models.dev catalog, including locked non-free models.
+        if (isOpenCodeZen) {
+            try {
+                const res = await fetch("https://models.dev/api.json", {
+                    headers: { accept: "application/json", "user-agent": "srouter/1.0.0" }
+                });
+                if (res.ok) {
+                    const data = (await res.json()) as Record<string, { models?: Record<string, { name?: string; status?: string }> }>;
+                    const models = data?.opencode?.models || {};
+                    const alias = providerAlias("opencode_zen");
+                    for (const [id, m] of Object.entries(models)) {
+                        if (!m || typeof m !== "object") continue;
+                        if (m.status && String(m.status).toLowerCase() === "deprecated") continue;
+                        const isFree = id.toLowerCase().endsWith("-free");
+                        allModels.push({
+                            id: `${alias}/${id}`,
+                            object: "model",
+                            name: m.name,
+                            owned_by: alias,
+                            locked: hasSupportingZenKey ? false : !isFree
+                        });
+                    }
+                }
+            } catch {
+                // ignore catalog fetch failures
+            }
+        }
+
         const deduped = new Map<string, ModelObject & { locked?: boolean }>();
         for (const m of allModels) {
             const bare = m.id.includes("/") ? m.id.split("/").slice(1).join("/") : m.id;
-            const locked = (m as ModelObject & { locked?: boolean }).locked;
+            let locked = (m as ModelObject & { locked?: boolean }).locked;
+            if (isOpenCodeZen) {
+                const isFree = bare.toLowerCase().endsWith("-free");
+                locked = hasSupportingZenKey ? false : !isFree;
+            }
             const prev = deduped.get(bare.toLowerCase());
             // locked=false menang: cukup satu akun yang membuka model
             deduped.set(bare.toLowerCase(), {
