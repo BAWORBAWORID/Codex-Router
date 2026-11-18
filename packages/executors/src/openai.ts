@@ -101,7 +101,7 @@ export class OpenAIExecutor implements AIProvider {
             if (token.startsWith("AIzaSy")) {
                 headers["x-goog-api-key"] = token;
             } else if (token.startsWith("ya29.")) {
-                headers["User-Agent"] = process.env.ANTIGRAVITY_UA || "antigravity/cli/1.5.9";
+                headers["User-Agent"] = process.env.ANTIGRAVITY_UA || "antigravity/cli/1.5.11";
                 headers["x-goog-api-client"] = "gl-node/18.0.0 gd/1.0.0";
             }
         }
@@ -115,23 +115,73 @@ export class OpenAIExecutor implements AIProvider {
                 headers: this.getHeaders()
             });
             if (!res.ok) {
-                return [];
+                const retryErrorText = await res.text();
+                throw new Error(`OpenAI Provider Error (${res.status}): ${retryErrorText}`);
             }
-            const data = (await res.json()) as ModelListResponse;
-            if (!data.data || !Array.isArray(data.data)) {
-                return [];
-            }
-            const baseId = this.id.split("_")[0]?.split("-")[0] ?? this.id;
-            return data.data.map((m) => ({
-                id: `${baseId}/${m.id}`,
-                object: "model",
-                owned_by: baseId
-            }));
+            const data = (await res.json()) as { data?: Array<any> };
+            return (data.data ?? []).map((m: any) => {
+                const locked = this.isPaidModel(m);
+                return {
+                    id: m.id,
+                    object: "model" as const,
+                    created: m.created ?? Math.floor(Date.now() / 1000),
+                    owned_by: m.owned_by ?? "system",
+                    locked
+                };
+            });
         } catch {
             return [];
         }
     }
 
+    /**
+     * Returns false only for models that are clearly free; everything else
+     * (paid or unknown) is treated as locked so Available shows only free models.
+     */
+    private isPaidModel(m: any): boolean {
+        const id = String(m?.id ?? "");
+        const idLower = id.toLowerCase();
+
+        // Explicit free markers
+        if (m?.isFree === true || m?.is_free === true) return false;
+        if (
+            idLower.endsWith("/free") ||
+            idLower.endsWith(":free") ||
+            idLower.includes(":free") ||
+            idLower === "free" ||
+            idLower.startsWith("free/")
+        ) {
+            return false;
+        }
+
+        const pricing = m?.pricing;
+        if (pricing && typeof pricing === "object") {
+            const toNum = (v: any): number | null => {
+                if (v === null || v === undefined || v === "") return null;
+                const n = typeof v === "number" ? v : parseFloat(String(v));
+                return Number.isFinite(n) ? n : null;
+            };
+
+            const prompt = toNum(pricing.prompt ?? pricing.input);
+            const completion = toNum(pricing.completion ?? pricing.output);
+            const request = toNum(pricing.request);
+            const image = toNum(pricing.image);
+            const webSearch = toNum(pricing.web_search ?? pricing.web_search_price);
+
+            const signals = [prompt, completion, request, image, webSearch].filter(
+                (v): v is number => v !== null
+            );
+            if (signals.length > 0) {
+                const allZero = signals.every((v) => v === 0);
+                if (allZero) return false; // explicitly free pricing
+                const anyPositive = signals.some((v) => v > 0);
+                if (anyPositive) return true; // paid/berbayar
+            }
+        }
+
+        // Unknown pricing/signal: treat as paid/locked.
+        return true;
+    }
     async chatCompletion(req: ChatCompletionRequest): Promise<ChatCompletionResponse> {
         const targetModel = stripProviderPrefix(req.model);
         const url = `${this.baseUrl}/chat/completions`;

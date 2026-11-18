@@ -16,9 +16,9 @@ import { CircuitBreaker, circuitBreaker as defaultCircuitBreaker } from "./circu
 
 const DEFAULT_MAX_TOKENS_CAP = 65536;
 
-function clampMaxTokens(req: ChatCompletionRequest): ChatCompletionRequest {
-    if (req.max_tokens && req.max_tokens > DEFAULT_MAX_TOKENS_CAP) {
-        return { ...req, max_tokens: DEFAULT_MAX_TOKENS_CAP };
+function clampMaxTokens(req: ChatCompletionRequest, cap: number): ChatCompletionRequest {
+    if (req.max_tokens && req.max_tokens > cap) {
+        return { ...req, max_tokens: cap };
     }
     return req;
 }
@@ -427,7 +427,17 @@ export class ProviderRegistry {
                 if (seenIds.has(id)) continue;
 
                 seenIds.add(id);
-                allModels.push({ id, object: "model", owned_by: alias });
+                allModels.push({
+                    id,
+                    object: "model",
+                    owned_by: alias,
+                    ...(typeof model.context_length === "number"
+                        ? { context_length: model.context_length }
+                        : {}),
+                    ...(typeof model.max_completion_tokens === "number"
+                        ? { max_completion_tokens: model.max_completion_tokens }
+                        : {})
+                });
             }
         }
 
@@ -481,8 +491,29 @@ export class ProviderRegistry {
         // again. The loop above observes that second refresh before returning.
     }
 
+    /** Prefer the upstream output limit published by the model, then its context window. */
+    private maxTokensCapForModel(modelId: string): number {
+        const target = modelId.toLowerCase();
+        const model = (this.modelsSnapshot?.models ?? []).find((m) => {
+            const id = m.id.toLowerCase();
+            const bare = id.includes("/") ? id.slice(id.lastIndexOf("/") + 1) : id;
+            const requested = target.includes("/") ? target.slice(target.lastIndexOf("/") + 1) : target;
+            return (
+                id === target ||
+                bare === requested ||
+                id.endsWith(`/${target}`) ||
+                target.endsWith(`/${id}`)
+            );
+        });
+
+        const cap = model?.max_completion_tokens ?? model?.context_length;
+        return typeof cap === "number" && Number.isFinite(cap) && cap > 0
+            ? cap
+            : DEFAULT_MAX_TOKENS_CAP;
+    }
+
     async chatCompletion(req: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-        const clampedReq = clampMaxTokens(req);
+        const clampedReq = clampMaxTokens(req, this.maxTokensCapForModel(req.model));
         const candidates = await this.getCandidateProvidersForModel(clampedReq.model);
         let lastError: unknown = null;
 
@@ -507,7 +538,7 @@ export class ProviderRegistry {
     async *chatCompletionStream(
         req: ChatCompletionRequest
     ): AsyncGenerator<ChatCompletionChunk, void, void> {
-        const clampedReq = clampMaxTokens(req);
+        const clampedReq = clampMaxTokens(req, this.maxTokensCapForModel(req.model));
         const candidates = await this.getCandidateProvidersForModel(clampedReq.model);
         let lastError: unknown = null;
 

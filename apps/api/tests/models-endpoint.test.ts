@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
 import { Hono } from "hono";
 import type { AIProvider } from "@codex/types";
-import { createFallbackRuleDB } from "@codex/db";
+import { createFallbackRuleDB, deleteFallbackRuleDB } from "@codex/db";
 import { ModelsRouter } from "../src/routes/v1/models.js";
 import { registry } from "../src/services/registry.js";
 import { ModelsLogic } from "../src/logic/models.logic.js";
@@ -129,20 +129,25 @@ test("GET /v1/models/:model returns single model or 404", async () => {
 });
 
 test("GET /v1/models exposes combo source models", async () => {
-    createFallbackRuleDB({
+    const rule = createFallbackRuleDB({
         sourceModel: "smart-route",
         targetModel: `${mockProviderId}/gpt-5-turbo`,
         priority: 1,
         enabled: true
     });
 
-    const response = await app.request("/v1/models", { method: "GET" });
+    try {
+        const response = await app.request("/v1/models", { method: "GET" });
 
-    assert.equal(response.status, 200);
+        assert.equal(response.status, 200);
 
-    const body = (await response.json()) as {
-        data: Array<{ id: string; owned_by: string }>;
-    };
+        const body = (await response.json()) as {
+            data: Array<{ id: string; owned_by: string }>;
+        };
 
-    assert.ok(body.data.some((model) => model.id === "srouter/smart-route"));
+        assert.ok(body.data.some((model) => model.id === "srouter/smart-route"));
+    } finally {
+        deleteFallbackRuleDB(rule.id);
+        ModelsLogic.ClearCache();
+    }
 });

@@ -49,6 +49,7 @@ import { TABITOKEN_PROVIDER } from "./tabitoken.js";
 import { TENCENT_TOKENHUB_PROVIDER } from "./tencent-tokenhub.js";
 import { TOGETHER_PROVIDER } from "./together.js";
 import { TOKENROUTER_PROVIDER } from "./tokenrouter.js";
+import { KILOCODE_PROVIDER } from "./kilocode.js";
 import { VENICE_PROVIDER } from "./venice.js";
 import { VERTEX_PROVIDER } from "./vertex.js";
 import { VLLM_PROVIDER } from "./vllm.js";
@@ -66,6 +67,7 @@ export const KNOWN_PROVIDERS = [
     SEEKAI_PROVIDER,
     TABITOKEN_PROVIDER,
     TOKENROUTER_PROVIDER,
+    KILOCODE_PROVIDER,
     OPENAI_CODEX_PROVIDER,
     ANTHROPIC_PROVIDER,
     ANTIGRAVITY_PROVIDER,

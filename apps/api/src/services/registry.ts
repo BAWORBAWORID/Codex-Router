@@ -10,6 +10,7 @@ import {
     FREEBUFF_BASE_URL,
     GOROUTER_BASE_URL,
     isProviderBaseId,
+    KILOCODE_BASE_URL,
     isSeedProvider,
     NEOSANTARA_BASE_URL,
     OPENCODE_ZEN_BASE_URL,
@@ -33,6 +34,7 @@ import {
     FreebuffExecutor,
     GoRouterExecutor,
     KiroExecutor,
+    KiloCodeExecutor,
     OpenCodeZenExecutor,
     OpenAIExecutor,
     OpenRouterExecutor,
@@ -180,6 +182,17 @@ export function loadSavedProvidersFromDB(): void {
                         accessToken: p.accessToken,
                         refreshToken: p.refreshToken,
                         accountId: p.accountId
+                    })
+                );
+                break;
+            case isProviderBaseId(p.id, "kilocode"):
+                registry.registerProvider(
+                    new KiloCodeExecutor({
+                        id: p.id || p.providerId,
+                        name: p.name,
+                        baseUrl: baseUrl || KILOCODE_BASE_URL,
+                        apiKey: p.apiKey,
+                        accessToken: p.accessToken
                     })
                 );
                 break;

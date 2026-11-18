@@ -9,6 +9,7 @@ export * from "./codebuddy.js";
 export * from "./codex.js";
 export * from "./deepseek-scraper.js";
 export * from "./kiro.js";
+export * from "./kilocode.js";
 export * from "./commandcode.js";
 export * from "./gorouter.js";
 export * from "./openrouter.js";

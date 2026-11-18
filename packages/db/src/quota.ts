@@ -91,7 +91,7 @@ export async function fetchAntigravityLiveQuota(
         headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
-            "User-Agent": process.env.ANTIGRAVITY_UA || "antigravity/cli/1.5.9",
+            "User-Agent": process.env.ANTIGRAVITY_UA || "antigravity/cli/1.5.11",
             "x-goog-api-client": "gl-node/18.0.0 gd/1.0.0"
         },
         body: JSON.stringify({})

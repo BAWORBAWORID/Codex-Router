@@ -56,4 +56,5 @@ export * from "./vllm.js";
 export * from "./sglang.js";
 export * from "./lmstudio.js";
 export * from "./llamacpp.js";
+export * from "./kilocode.js";
 export * from "./catalog.js";

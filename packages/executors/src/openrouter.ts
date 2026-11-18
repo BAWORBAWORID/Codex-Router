@@ -77,11 +77,9 @@ export class OpenRouterExecutor extends OpenAIExecutor {
                     m.id.endsWith(":free") ||
                     m.id === "openrouter/free";
 
-                // Model is free only if it's a zero-price free candidate and not in failed list
+                // Only clearly working free models are Available; all others (paid/failed/unknown) are Locked.
                 const isWorkingFreeModel = isFreeCandidate && !FAILED_FREE_MODELS.has(m.id);
-
-                // locked = account is free tier AND model is NOT a working free model
-                const locked = isFreeTier && !isWorkingFreeModel;
+                const locked = !isWorkingFreeModel;
 
                 return {
                     id: `${baseId}/${m.id}`,

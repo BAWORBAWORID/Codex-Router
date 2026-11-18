@@ -178,12 +178,34 @@ export function geminiToOpenAIResponse(
  * ============================================================================
  */
 
-// Official Antigravity CLI 1.5.9 User-Agent
-export const ANTIGRAVITY_CLI_VERSION = "1.5.9";
-export const ANTIGRAVITY_IDE_VERSION = "1.5.9";
-export const ANTIGRAVITY_IDE_USER_AGENT =
-    process.env.ANTIGRAVITY_UA ||
-    `antigravity/cli/${ANTIGRAVITY_CLI_VERSION}`;
+// Official Antigravity CLI User-Agent. The version is refreshed at runtime
+// from the upstream manifest; the literal below is only the offline fallback.
+const ANTIGRAVITY_CLI_FALLBACK_VERSION = "1.5.11";
+const ENV_ANTIGRAVITY_UA = process.env.ANTIGRAVITY_UA;
+// A version-shaped override (e.g. the old pinned "antigravity/cli/1.5.11")
+// should follow the runtime version instead of freezing it.
+const IsVersionShapedEnvUa = Boolean(
+    ENV_ANTIGRAVITY_UA && /^antigravity\/cli\/\d+\.\d+\.\d+$/.test(ENV_ANTIGRAVITY_UA.trim())
+);
+
+export let ANTIGRAVITY_CLI_VERSION = ANTIGRAVITY_CLI_FALLBACK_VERSION;
+export const ANTIGRAVITY_IDE_VERSION = ANTIGRAVITY_CLI_FALLBACK_VERSION;
+export let ANTIGRAVITY_IDE_USER_AGENT =
+    ENV_ANTIGRAVITY_UA || `antigravity/cli/${ANTIGRAVITY_CLI_VERSION}`;
+
+export function GetAntigravityCliVersion(): string {
+    return ANTIGRAVITY_CLI_VERSION;
+}
+
+/** Update the live CLI version binding; invalid versions are ignored. */
+export function SetAntigravityCliVersion(version: string): void {
+    const Clean = version.trim();
+    if (!/^\d+\.\d+\.\d+$/.test(Clean)) return;
+    ANTIGRAVITY_CLI_VERSION = Clean;
+    if (!ENV_ANTIGRAVITY_UA || IsVersionShapedEnvUa) {
+        ANTIGRAVITY_IDE_USER_AGENT = `antigravity/cli/${Clean}`;
+    }
+}
 
 export const MAX_ANTIGRAVITY_OUTPUT_TOKENS = 64000;
 

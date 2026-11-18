@@ -211,9 +211,17 @@ function QuotaPage() {
     }
 
     const allProviders = data?.providers ?? [];
-    // Only display provider cards that actually have live quotas or recorded usage metrics
+    // Show every connected account, including providers without a live quota API
+    // (e.g. Kilo) — those cards explain that usage is only tracked locally.
+    // Hide Freebuff's local-usage card (it has no live quota and only a stale
+    // per-model history table); its live quota card is still shown.
     const activeProviders = allProviders.filter(
-        (p) => (p.quotas && p.quotas.length > 0) || (p.usageMetrics && p.usageMetrics.length > 0)
+        (p) =>
+            !(
+                p.providerId?.toLowerCase() === "freebuff" &&
+                (p.quotas?.length ?? 0) === 0 &&
+                (p.usageMetrics?.length ?? 0) > 0
+            )
     );
 
     const isAllCollapsed =
@@ -571,6 +579,18 @@ function QuotaPage() {
                                                 <UsageMetricsTable
                                                     metrics={account.usageMetrics!}
                                                 />
+                                            </div>
+                                        )}
+
+                                        {!hasLiveQuotas && !hasMetrics && (
+                                            <div className="rounded-[8px] border border-dashed border-[var(--line)] bg-[var(--field)]/30 px-3 py-4 text-center">
+                                                <p className="text-[11px] font-semibold text-[var(--ink-2)]">
+                                                    No live quota available for this provider
+                                                </p>
+                                                <p className="mt-1 text-[10.5px] text-[var(--ink-3)]">
+                                                    Upstream does not expose a quota endpoint. Usage
+                                                    is recorded locally as requests are routed.
+                                                </p>
                                             </div>
                                         )}
                                     </div>

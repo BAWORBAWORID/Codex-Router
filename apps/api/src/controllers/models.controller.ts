@@ -6,6 +6,14 @@ import { GetApiKeyRow, IsModelAllowed } from "@/middleware/ModelAccess.js";
 
 const MODEL_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=300";
 
+/** Keep upstream limits internal: they are used for token capping, not exposed on /v1/models. */
+function PublicModel(Model: ModelObject): ModelObject {
+    const Clone = { ...Model };
+    delete Clone.context_length;
+    delete Clone.max_completion_tokens;
+    return Clone;
+}
+
 export class ModelsController {
     public static async ListModels(c: Context): Promise<Response> {
         const RefreshParam = c.req.query("refresh") || c.req.query("force");
@@ -27,7 +35,7 @@ export class ModelsController {
 
         const ResponseData: ModelListResponse = {
             object: "list",
-            data: VisibleModels
+            data: VisibleModels.map(PublicModel)
         };
         c.header("Cache-Control", MODEL_CACHE_CONTROL);
         return Ok(c, ResponseData);
@@ -51,7 +59,7 @@ export class ModelsController {
         const Model = await ModelsLogic.GetModelById(ModelId, ForceRefresh);
         if (Model) {
             c.header("Cache-Control", MODEL_CACHE_CONTROL);
-            return Ok(c, Model);
+            return Ok(c, PublicModel(Model));
         }
 
         return Err(c, `Model '${ModelId}' not found`, 404, {

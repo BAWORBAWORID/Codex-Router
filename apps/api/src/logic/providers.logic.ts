@@ -232,28 +232,29 @@ export class ProvidersLogic {
         const CustomModels = ProvidersLogic.ListCustomModels(ProviderId);
         LiveModels = mergeProviderModels(ProviderId, LiveModels, CustomModels);
 
-        // For openrouter, only show unlocked models in available models to prevent 400+ locked clutter
+        // OpenRouter: keep both free (unlocked) and paid (locked) models so UI can
+        // show "Available" = free only and "Locked" = paid/other.
         if (ProviderId.toLowerCase() === "openrouter") {
-            LiveModels = LiveModels.filter((m) => !(m as { locked?: boolean }).locked);
+            LiveModels = LiveModels.map((m) => {
+                const id = String(m.id || "").toLowerCase();
+                const bare = id.includes("/") ? id.split("/").slice(1).join("/") : id;
+                // Respect executor's free/locked classification; if missing, infer from :free suffix.
+                const inferredLocked = !(bare.endsWith(":free") || bare === "openrouter/free");
+                const locked = typeof (m as { locked?: boolean }).locked === "boolean"
+                    ? Boolean((m as { locked?: boolean }).locked)
+                    : inferredLocked;
+                return { ...m, locked };
+            });
         }
 
-        // For opencode_zen, only expose unlocked/free models in Available Models.
-        // Non-free models remain locked and must not appear in the available list.
+        // OpenCode Zen: only *-free models are Available; all others are Locked (paid).
         if (BaseIdOf(ProviderId).toLowerCase() === "opencode_zen") {
-            const hasSupportingKey = Connections.some((C) => {
-                if (!C.enabled) return false;
-                const key = String(C.apiKey || C.accessToken || "").trim().toLowerCase();
-                return key.length > 0 && key !== "public";
+            LiveModels = LiveModels.map((m) => {
+                const id = String(m.id || "").toLowerCase();
+                const bare = id.includes("/") ? id.split("/").slice(1).join("/") : id;
+                const isFree = bare.endsWith("-free");
+                return { ...m, locked: !isFree };
             });
-            LiveModels = LiveModels
-                .map((m) => {
-                    const id = String(m.id || "").toLowerCase();
-                    const bare = id.includes("/") ? id.split("/").slice(1).join("/") : id;
-                    const isFree = bare.endsWith("-free");
-                    const locked = hasSupportingKey ? false : !isFree;
-                    return { ...m, locked };
-                })
-                .filter((m) => !(m as { locked?: boolean }).locked && String(m.id || "").toLowerCase().split("/").pop()?.endsWith("-free"));
         }
 
         return {

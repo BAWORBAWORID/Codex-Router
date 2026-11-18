@@ -21,6 +21,7 @@ import { CreateBodyLimitMiddleware } from "@/middleware/BodyLimit.js";
 import { startTokenRefreshSweeper } from "@/services/tokenRefresh.js";
 import { resolveWebDistPath } from "@/services/webDist.js";
 import { warmModelRegistry } from "@/services/registry.js";
+import { startAntigravityVersionSweeper } from "@/services/antigravityVersion.js";
 import { bootstrapAdminAccountFromEnv } from "@/services/adminAuth.js";
 import { autostartTunnelIfEnabled } from "@/services/cloudflareTunnel.js";
 import { adminAuthStore } from "@codex/db";
@@ -33,7 +34,7 @@ const app = new Hono();
 // Security Headers & Version Middleware
 app.use("/*", async (c, next) => {
     await next();
-    c.header("X-Powered-By", "Seaavey");
+    c.header("X-Powered-By", "Zyvor");
     c.header("X-Version", API_VERSION);
     c.header("X-Content-Type-Options", "nosniff");
     c.header("X-Frame-Options", "DENY");
@@ -170,6 +171,7 @@ serve(
             );
         }
         warmModelRegistry();
+        startAntigravityVersionSweeper();
     }
 );
 

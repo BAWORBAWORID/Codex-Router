@@ -146,6 +146,10 @@ export interface ModelObject {
     name?: string;
     /** True when the entry was manually added by the user (custom_models table). */
     custom?: boolean;
+    /** Upstream context window, when the provider publishes it. */
+    context_length?: number;
+    /** Upstream maximum output tokens, when the provider publishes it. */
+    max_completion_tokens?: number;
 }
 
 export interface ModelListResponse {
