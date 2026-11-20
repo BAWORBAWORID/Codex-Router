@@ -15,6 +15,7 @@ const ICON_MAPPING: Record<string, string> = {
     newapi: "/icons/providers/newapi.png",
     bluesminds: "/icons/providers/bluesminds.png",
     deepai: "/icons/providers/deepai.png",
+    freepi: "/icons/providers/newapi.png",
     freebuff: "/icons/providers/freebuff.svg",
     codebuff: "/icons/providers/freebuff.svg",
     seekai: "/icons/providers/newapi.png",

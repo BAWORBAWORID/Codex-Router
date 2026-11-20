@@ -360,5 +360,41 @@ export const AuthController = {
                 (b) => AuthLogic.processProviderTokenImport("freebuff", b),
                 c
             )
+    },
+
+    FreePi: {
+        OAuth: async (c: Context): Promise<Response> => {
+            try {
+                const result = await AuthLogic.initiateFreePiOAuth();
+                const format = c.req.query("format");
+                if (format === "json") {
+                    return Ok(c, {
+                        authorizeUrl: result.authorizeUrl,
+                        state: result.state,
+                        userCode: result.userCode,
+                        verificationUriComplete: result.verificationUriComplete
+                    });
+                }
+                return c.redirect(result.authorizeUrl);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Internal Server Error";
+                return Err(c, `Failed to initiate FreePi login: ${message}`, 500);
+            }
+        },
+        Poll: async (c: Context): Promise<Response> => {
+            const state = await ExtractState(c);
+            if (!state) {
+                return Err(c, "Missing state parameter", 400);
+            }
+            const result = await AuthLogic.pollFreePiDeviceToken(state);
+            return Ok(c, result);
+        },
+        ImportToken: (c: Context): Promise<Response> =>
+            ImportTokenFor(
+                AuthHandlers.FreePi,
+                (b) => AuthLogic.processProviderTokenImport("freepi", b),
+                c
+            )
     }
+
 };

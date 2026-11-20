@@ -29,6 +29,7 @@ export interface GroupedCatalog {
     free_tier: ProviderDefinition[];
     api_key: ProviderDefinition[];
     custom_provider: ProviderDefinition[];
+    self_hosted: ProviderDefinition[];
 }
 
 export interface CatalogSummary {
@@ -195,7 +196,8 @@ export class ProvidersLogic {
             oauth: Catalog.filter((P) => P.category === "oauth"),
             free_tier: Catalog.filter((P) => P.category === "free_tier"),
             api_key: Catalog.filter((P) => P.category === "api_key"),
-            custom_provider: Catalog.filter((P) => P.category === "custom_provider")
+            custom_provider: Catalog.filter((P) => P.category === "custom_provider"),
+            self_hosted: Catalog.filter((P) => P.category === "self_hosted")
         };
 
         return {

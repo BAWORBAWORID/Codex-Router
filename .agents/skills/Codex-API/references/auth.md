@@ -6,7 +6,7 @@ Behavior:
 
 - accepts `Authorization` bearer token
 - accepts `x-api-key`
-- virtual keys use `sr-live-*`
+- virtual keys use `zyv-live-*`
 - respects `require_api_key`
 - loopback can bypass auth when disabled
 

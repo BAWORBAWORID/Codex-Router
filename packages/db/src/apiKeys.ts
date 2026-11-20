@@ -73,7 +73,7 @@ export function createAPIKeyDB(data: {
 }): APIKeyZod {
     const Id = generateId("key");
     const RandomHex = randomUUID().replace(/-/g, "").slice(0, 16);
-    const Key = `sr-live-${RandomHex}`;
+    const Key = `zyv-live-${RandomHex}`;
     const CreatedAt = Date.now();
     const AllowedModels =
         data.allowed_models && data.allowed_models.length > 0 ? data.allowed_models : null;

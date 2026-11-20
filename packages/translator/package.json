@@ -1,6 +1,6 @@
 {
     "name": "@codex/translator",
-    "version": "1.0.5-rc.5",
+    "version": "1.0.5-rc.6-alpha.1",
     "type": "module",
     "repository": {
         "type": "git",

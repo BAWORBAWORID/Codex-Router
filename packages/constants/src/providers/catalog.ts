@@ -41,6 +41,7 @@ import { OPENROUTER_PROVIDER } from "./openrouter.js";
 import { PERPLEXITY_PROVIDER } from "./perplexity.js";
 import { QIANFAN_PROVIDER } from "./qianfan.js";
 import { QODER_PROVIDER } from "./qoder.js";
+import { FREEPI_PROVIDER } from "./freepi.js";
 import { SAMBANOVA_PROVIDER } from "./sambanova.js";
 import { SEEKAI_PROVIDER } from "./seekai.js";
 import { SGLANG_PROVIDER } from "./sglang.js";
@@ -64,6 +65,7 @@ export const KNOWN_PROVIDERS = [
     BLUESMINDS_PROVIDER,
     DEEPAI_PROVIDER,
     FREEBUFF_PROVIDER,
+    FREEPI_PROVIDER,
     SEEKAI_PROVIDER,
     TABITOKEN_PROVIDER,
     TOKENROUTER_PROVIDER,

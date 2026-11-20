@@ -1,5 +1,5 @@
 import { providerTypeForAlias } from "@codex/constants";
-import { getAllProvidersDB, updateProviderTokensDB, getProviderByIdDB, deleteProviderDB } from "@codex/db";
+import { getAllProvidersDB, updateProviderTokensDB, getProviderByIdDB, deleteProviderDB, updateProviderSpecificDataDB } from "@codex/db";
 import type { AIProvider, ProviderConfig } from "@codex/types";
 import { authProviderHandlers } from "@/services/authHandlers.js";
 import { registry } from "./registry.js";
@@ -127,6 +127,61 @@ async function refreshProviderTokenOnce(providerId: string): Promise<RefreshResu
  * Check if a DeepAI session token is expired (401 from upstream).
  * If expired, delete the provider account from SQLite and unregister it from the live registry.
  */
+/**
+ * Check health/status of an Antigravity account directly against Google CloudCode.
+ * Detects 403 "Terms of Service" -> suspended, 403 "Verify your account" -> verify_required.
+ */
+export async function checkAntigravityAccountStatus(provider: ProviderConfig): Promise<void> {
+    const token = provider.accessToken;
+    if (!token) return;
+
+    try {
+        const res = await fetch("https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent": "antigravity/cli/1.5.11",
+                Authorization: `Bearer ${token}`,
+                "x-goog-api-client": "gl-node/18.0.0 gd/1.0.0"
+            },
+            body: JSON.stringify({
+                project: "aicode-consumers",
+                model: "gemini-2.5-flash",
+                userAgent: "antigravity",
+                requestType: "agent",
+                requestId: "health-check-probe",
+                request: {
+                    contents: [{ role: "user", parts: [{ text: "ping" }] }],
+                    generationConfig: { maxOutputTokens: 2 }
+                }
+            }),
+            signal: AbortSignal.timeout(8000)
+        });
+
+        let accountStatus = "active";
+        let accountStatusReason = "Healthy";
+
+        if (res.status === 403) {
+            const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+            const msg = data.error?.message || "";
+            if (/violation of Terms of Service/i.test(msg)) {
+                accountStatus = "suspended";
+                accountStatusReason = "Terms of Service violation";
+            } else if (/Verify your account/i.test(msg)) {
+                accountStatus = "verify_required";
+                accountStatusReason = "Verify your account to continue";
+            } else {
+                accountStatus = "suspended";
+                accountStatusReason = msg || "Permission denied (403)";
+            }
+        }
+
+        updateProviderSpecificDataDB(provider.id, { accountStatus, accountStatusReason });
+    } catch {
+        // network error, leave unchanged
+    }
+}
+
 export async function checkAndPruneDeepAIAccount(provider: ProviderConfig): Promise<boolean> {
     const token = provider.accessToken || provider.apiKey;
     if (!token) return false;
@@ -169,11 +224,13 @@ export async function sweepExpiredTokens(): Promise<RefreshResult[]> {
     const providers = getAllProvidersDB().filter((p) => p.enabled && p.refreshToken);
     const results: RefreshResult[] = [];
 
-    // Auto-prune expired DeepAI accounts
+    // Auto-prune expired DeepAI accounts & check Antigravity status
     const allProviders = getAllProvidersDB().filter((p) => p.enabled);
     for (const p of allProviders) {
         if (p.providerId === "deepai" && p.id !== "deepai") {
             await checkAndPruneDeepAIAccount(p);
+        } else if (p.providerId === "antigravity" && p.refreshToken) {
+            await checkAntigravityAccountStatus(p);
         }
     }
 

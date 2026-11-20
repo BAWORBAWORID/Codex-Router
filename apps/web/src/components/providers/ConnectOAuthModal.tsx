@@ -14,20 +14,26 @@ interface ConnectOAuthModalProps {
 interface OAuthLoginResponse {
     authorizeUrl: string;
     state: string;
-    codeVerifier: string;
-    redirectUri: string;
+    codeVerifier?: string;
+    redirectUri?: string;
+    userCode?: string;
+    verificationUriComplete?: string;
 }
 
 export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuthModalProps) {
     const queryClient = useQueryClient();
-    const [copied, setCopied] = useState(false);
+    const [copiedUrl, setCopiedUrl] = useState(false);
+    const [copiedCode, setCopiedCode] = useState(false);
     const [callbackUrlInput, setCallbackUrlInput] = useState("");
     const [patInput, setPatInput] = useState("");
     const [activeTab, setActiveTab] = useState<"oauth" | "pat">("oauth");
     const [error, setError] = useState("");
     const [authUrl, setAuthUrl] = useState("");
     const [oauthState, setOauthState] = useState("");
+    const [userCode, setUserCode] = useState("");
     const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+    const [isChecking, setIsChecking] = useState(false);
+    const [checkMessage, setCheckMessage] = useState("");
     const popupRef = useRef<Window | null>(null);
 
     const baseId = provider?.id.split("_")[0]?.split("-")[0] ?? provider?.id ?? "";
@@ -35,7 +41,8 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
     const isQoder = baseId === "qoder";
     const isCodeBuddy = baseId === "codebuddy";
     const isFreebuff = baseId === "freebuff";
-    const isPolling = isQoder || isCodeBuddy || isFreebuff;
+    const isFreePi = baseId === "freepi";
+    const isPolling = isQoder || isCodeBuddy || isFreebuff || isFreePi;
 
     useEffect(() => {
         if (open && isFreebuff) {
@@ -50,7 +57,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
         if (!open || !provider) {
             setAuthUrl("");
             setOauthState("");
+            setUserCode("");
             setError("");
+            setCheckMessage("");
             setCallbackUrlInput("");
             setPatInput("");
             if (popupRef.current && !popupRef.current.closed) {
@@ -61,6 +70,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
 
         setIsLoadingUrl(true);
         setError("");
+        setCheckMessage("");
 
         const providerEndpoint =
             baseId === "antigravity"
@@ -71,6 +81,8 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                     ? "/v1/auth/qoder/login?format=json"
                   : baseId === "freebuff"
                     ? "/v1/auth/freebuff/login?format=json"
+                  : baseId === "freepi"
+                    ? "/v1/auth/freepi/login?format=json"
                   : baseId === "codebuddy"
                     ? `/v1/auth/${authProviderId}/login?format=json`
                     : baseId === "claude" || baseId === "anthropic"
@@ -81,6 +93,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
             .then((res) => {
                 setAuthUrl(res.authorizeUrl);
                 setOauthState(res.state);
+                setUserCode(res.userCode || "");
                 setIsLoadingUrl(false);
             })
             .catch((err: Error) => {
@@ -140,7 +153,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                         ? `/v1/auth/${authProviderId}/poll?state=${encodeURIComponent(oauthState)}`
                         : baseId === "freebuff"
                           ? `/v1/auth/freebuff/poll?state=${encodeURIComponent(oauthState)}`
-                          : `/v1/auth/qoder/poll?state=${encodeURIComponent(oauthState)}`;
+                          : baseId === "freepi"
+                            ? `/v1/auth/freepi/poll?state=${encodeURIComponent(oauthState)}`
+                            : `/v1/auth/qoder/poll?state=${encodeURIComponent(oauthState)}`;
                 const res = await api.get<{ status: AuthPollStatus; provider?: ProviderConfig }>(
                     pollUrl
                 );
@@ -195,7 +210,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
     const patMutation = useMutation({
         mutationFn: (payload: { accessToken: string }) => {
             const endpoint = `/v1/auth/${authProviderId}/token`;
-            return api.post(endpoint, payload);
+            return api.post(endpoint, { access_token: payload.accessToken, accessToken: payload.accessToken });
         },
         onSuccess: () => {
             if (provider) {
@@ -212,11 +227,51 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
         }
     });
 
-    const handleCopy = async () => {
+
+    const handleValidate = async () => {
+        if (!provider || !oauthState) return;
+        setIsChecking(true);
+        setCheckMessage("");
+        setError("");
+        try {
+            const pollUrl =
+                baseId === "codebuddy"
+                    ? `/v1/auth/${authProviderId}/poll?state=${encodeURIComponent(oauthState)}`
+                    : baseId === "freebuff"
+                      ? `/v1/auth/freebuff/poll?state=${encodeURIComponent(oauthState)}`
+                      : baseId === "freepi"
+                        ? `/v1/auth/freepi/poll?state=${encodeURIComponent(oauthState)}`
+                        : `/v1/auth/qoder/poll?state=${encodeURIComponent(oauthState)}`;
+            const res = await api.get<{ status: AuthPollStatus; provider?: ProviderConfig; error?: string }>(pollUrl);
+            if (res && res.status === AuthPollStatus.OK) {
+                if (popupRef.current && !popupRef.current.closed) {
+                    popupRef.current.close();
+                }
+                void queryClient.invalidateQueries({ queryKey: ["providers"] });
+                void queryClient.invalidateQueries({ queryKey: ["providers", provider.id] });
+                void queryClient.invalidateQueries({ queryKey: ["providers", "catalog"] });
+                onOpenChange(false);
+                setError("");
+                setCheckMessage("");
+                return;
+            }
+            if (res?.error) {
+                setCheckMessage(`Belum selesai: ${res.error}`);
+            } else {
+                setCheckMessage("Belum terdeteksi login/otorisasi. Selesaikan langkah di browser lalu cek lagi.");
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Gagal memeriksa status login");
+        } finally {
+            setIsChecking(false);
+        }
+    };
+
+    const handleCopyUrl = async () => {
         if (!authUrl) return;
         await navigator.clipboard.writeText(authUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        setCopiedUrl(true);
+        setTimeout(() => setCopiedUrl(false), 1500);
     };
 
     const handleConnect = (e: React.FormEvent) => {
@@ -275,7 +330,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                 </div>
 
                 {/* Optional Tab Switcher for Qoder, CodeBuddy, or Freebuff */}
-                {(isQoder || isCodeBuddy || isFreebuff) && (
+                {(isQoder || isCodeBuddy || isFreebuff || isFreePi) && (
                     <div className="flex border-b border-border/60 text-xs font-mono">
                         <button
                             type="button"
@@ -316,6 +371,12 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                     </div>
                 )}
 
+                {checkMessage && (
+                    <div className="rounded border border-border/60 bg-secondary/30 p-2.5 text-xs font-mono text-foreground">
+                        {checkMessage}
+                    </div>
+                )}
+
                 {activeTab === "oauth" ? (
                     <>
                         {/* Waiting State Banner */}
@@ -330,7 +391,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                         ? "Waiting for CodeBuddy browser authorization…"
                                         : isFreebuff
                                           ? "Waiting for Freebuff browser authorization…"
-                                          : "Waiting for popup authorization…"}
+                                          : isFreePi
+                                            ? "Waiting for GitHub authorization (masukkan kode di browser)…"
+                                            : "Waiting for popup authorization…"}
                             </span>
                         </div>
 
@@ -358,21 +421,69 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => void handleCopy()}
+                                        onClick={() => void handleCopyUrl()} title="Copy URL"
                                         disabled={!authUrl}
                                         className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-secondary/60 hover:bg-secondary px-3 py-2 text-xs font-semibold text-foreground transition-all shrink-0 disabled:opacity-50 cursor-pointer"
                                     >
-                                        {copied ? (
+                                        {copiedUrl ? (
                                             <Check className="size-3.5 text-emerald-500" />
                                         ) : (
                                             <Copy className="size-3.5" />
                                         )}
-                                        <span>Copy</span>
+                                        <span>{copiedUrl ? "Copied URL" : "Copy URL"}</span>
                                     </button>
                                 </div>
                             </div>
 
-                            {!isPolling && (
+                            {isPolling && userCode && (
+                                <div className="space-y-1.5">
+                                    <label className="font-semibold text-foreground block font-sans text-xs">
+                                        Step 2: Masukkan kode ini di halaman GitHub
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-center text-base font-mono font-bold tracking-[0.25em] text-foreground">
+                                            {userCode}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            title="Copy code"
+                                            onClick={async () => {
+                                                await navigator.clipboard.writeText(userCode);
+                                                setCopiedCode(true);
+                                                setTimeout(() => setCopiedCode(false), 1500);
+                                            }}
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-secondary/60 hover:bg-secondary px-3 py-2 text-xs font-semibold text-foreground transition-all shrink-0 cursor-pointer"
+                                        >
+                                            {copiedCode ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                                            <span>{copiedCode ? "Copied Code" : "Copy Code"}</span>
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground font-sans">
+                                        Buka URL di atas, login akun GitHub, lalu masukkan kode 6 digit/huruf ini. Koneksi akan selesai otomatis.
+                                    </p>
+                                </div>
+                            )}
+
+                            {isPolling ? (
+                                <div className="pt-3 border-t border-border/60 flex items-center justify-end gap-3 font-sans">
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenChange(false)}
+                                        className="px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleValidate()}
+                                        disabled={isChecking || !oauthState}
+                                        className="rounded-lg bg-secondary hover:bg-foreground hover:text-background border border-border/60 text-foreground px-5 py-2 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer inline-flex items-center gap-2"
+                                    >
+                                        {isChecking && <Loader2 className="size-3.5 animate-spin" />}
+                                        <span>{isChecking ? "Checking…" : "Validate / Cek Status"}</span>
+                                    </button>
+                                </div>
+                            ) : (
                                 <>
                                     {/* Step 2 for redirect-based OAuth */}
                                     <div className="space-y-1.5">
@@ -417,13 +528,17 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                     ? "Freebuff Auth Token (Single or List)"
                                     : isCodeBuddy
                                       ? "CodeBuddy Access Token"
-                                      : "Personal Access Token (PAT)"}
+                                      : isFreePi
+                                        ? "FreePi JWT Token"
+                                        : "Personal Access Token (PAT)"}
                             </label>
                             <p className="text-[11px] text-muted-foreground font-sans">
                                 {isFreebuff ? (
                                     "Paste 1 token atau beberapa token (satu baris per token) dari Freebuff / Codebuff."
                                 ) : isCodeBuddy ? (
                                     "Masukkan Access Token / Bearer Token dari akun CodeBuddy Anda."
+                                ) : isFreePi ? (
+                                    "Tempel JWT FreePi (opsional, jika tidak memakai login device GitHub)."
                                 ) : (
                                     <>
                                         Generate your PAT (`pt-...`) from{" "}
@@ -449,7 +564,7 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                             ) : (
                                 <input
                                     type="password"
-                                    placeholder={isCodeBuddy ? "eyJhbGciOi..." : "pt-..."}
+                                    placeholder={isCodeBuddy ? "eyJhbGciOi..." : isFreePi ? "eyJhbGciOi..." : "pt-..."}
                                     value={patInput}
                                     onChange={(e) => setPatInput(e.target.value)}
                                     className="w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -476,7 +591,9 @@ export function ConnectOAuthModal({ provider, open, onOpenChange }: ConnectOAuth
                                       ? "Import Token / List"
                                       : isCodeBuddy
                                         ? "Connect CodeBuddy"
-                                        : "Connect PAT"}
+                                        : isFreePi
+                                          ? "Connect FreePi"
+                                          : "Connect PAT"}
                             </button>
                         </div>
                     </form>

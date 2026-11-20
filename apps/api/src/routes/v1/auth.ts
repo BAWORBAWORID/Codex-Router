@@ -59,3 +59,8 @@ AuthRouter.get("/auth/freebuff/login", RequireAdmin, AuthController.Freebuff.OAu
 AuthRouter.get("/auth/freebuff/poll", RequireAdmin, AuthController.Freebuff.Poll);
 AuthRouter.post("/auth/freebuff/poll", RequireAdmin, AuthController.Freebuff.Poll);
 AuthRouter.post("/auth/freebuff/token", RequireAdmin, AuthController.Freebuff.ImportToken);
+
+AuthRouter.get("/auth/freepi/login", RequireAdmin, AuthController.FreePi.OAuth);
+AuthRouter.get("/auth/freepi/poll", RequireAdmin, AuthController.FreePi.Poll);
+AuthRouter.post("/auth/freepi/poll", RequireAdmin, AuthController.FreePi.Poll);
+AuthRouter.post("/auth/freepi/token", RequireAdmin, AuthController.FreePi.ImportToken);

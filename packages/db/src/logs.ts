@@ -164,7 +164,23 @@ export function getProviderUsageSummaryDB(providerId: string): UsageSummary {
     };
 }
 
-export function getProviderModelUsageDB(providerId: string): ModelUsageSummaryRow[] {
+export function getProviderModelUsageDB(providerId: string, isPrimary = false): ModelUsageSummaryRow[] {
+    // If not primary connection of this provider, return empty to prevent duplicate metric aggregation
+    if (!isPrimary) {
+        const DirectRows = db.prepare(`SELECT model, COUNT(*) as totalRequests, COALESCE(SUM(total_tokens), 0) as totalTokens, COALESCE(SUM(prompt_tokens), 0) as promptTokens, COALESCE(SUM(completion_tokens), 0) as completionTokens, COALESCE(SUM(cached_tokens), 0) as cachedTokens, COALESCE(SUM(estimated_cost), 0) as estimatedCost, MAX(created_at) as lastUsedAt FROM request_logs WHERE provider_id = ? GROUP BY model ORDER BY lastUsedAt DESC`).all(providerId) as unknown as ModelUsageDBShape[];
+        return DirectRows.map((row) => ({
+            model: row.model,
+            totalRequests: row.totalRequests,
+            totalTokens: row.totalTokens,
+            promptTokens: row.promptTokens,
+            completionTokens: row.completionTokens,
+            cachedTokens: row.cachedTokens,
+            estimatedCost: row.estimatedCost,
+            lastUsedAt: row.lastUsedAt
+        }));
+    }
+
+    const baseId = providerId.includes("_") ? providerId.split("_")[0] : providerId.includes("-") ? providerId.split("-")[0] : providerId;
     const Query = db.prepare(`
         SELECT 
             model,
@@ -176,12 +192,12 @@ export function getProviderModelUsageDB(providerId: string): ModelUsageSummaryRo
             COALESCE(SUM(estimated_cost), 0) as estimatedCost,
             MAX(created_at) as lastUsedAt
         FROM request_logs
-        WHERE provider_id = ?
+        WHERE provider_id = ? OR provider_id = ?
         GROUP BY model
         ORDER BY lastUsedAt DESC
     `);
 
-    const Rows = Query.all(providerId) as unknown as ModelUsageDBShape[];
+    const Rows = Query.all(providerId, baseId) as unknown as ModelUsageDBShape[];
 
     return Rows.map((row) => ({
         model: row.model,

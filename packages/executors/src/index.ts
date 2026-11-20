@@ -5,6 +5,7 @@ export * from "./base.js";
 export * from "./bluesminds.js";
 export * from "./deepai.js";
 export * from "./freebuff.js";
+export * from "./freepi.js";
 export * from "./codebuddy.js";
 export * from "./codex.js";
 export * from "./deepseek-scraper.js";

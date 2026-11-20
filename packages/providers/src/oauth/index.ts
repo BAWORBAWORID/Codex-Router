@@ -6,3 +6,4 @@ export * from "./openai.js";
 export * from "./deepai.js";
 export * from "./freebuff.js";
 export * from "./qoder.js";
+export * from "./freepi.js";

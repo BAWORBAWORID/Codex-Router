@@ -20,7 +20,7 @@ The ZyvorAI team and community take the security of our gateway, credentials, an
 - ZyvorAI never phones home, collects telemetry, or sends your API keys to third-party tracking servers
 - All data remains under your control at all times
 
-### 2. Virtual Client Keys (`sr-live-...`)
+### 2. Virtual Client Keys (`zyv-live-...`)
 
 - Clients and downstream applications interact with ZyvorAI using virtual API keys
 - Your upstream master provider keys are completely isolated and never exposed to clients

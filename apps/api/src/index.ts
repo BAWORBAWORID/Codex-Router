@@ -60,7 +60,7 @@ bootstrapAdminAccountFromEnv(adminAuthStore);
 autostartTunnelIfEnabled();
 
 const apiInfo = () => ({
-    name: "SRouter API",
+    name: "ZyvorRouter API",
     status: "ok",
     version: API_VERSION,
     documentation: "Multi-Provider OpenAI & Anthropic Compatible LLM Gateway"
@@ -115,7 +115,9 @@ app.get("/health", (c) => {
 
 // Base /v1 endpoint for baseURL discovery
 app.get("/v1", (c) => {
-    return c.json(apiInfo());
+    return c.text(JSON.stringify(apiInfo(), null, 2) + "\n", 200, {
+        "Content-Type": "application/json; charset=UTF-8"
+    });
 });
 
 // Mount OpenAI & Anthropic v1 API routes
@@ -150,7 +152,9 @@ if (hasWebDist) {
 } else {
     // API Welcome / Health info when web dist is not present
     app.get("/", (c) => {
-        return c.json(apiInfo());
+        return c.text(JSON.stringify(apiInfo(), null, 2) + "\n", 200, {
+            "Content-Type": "application/json; charset=UTF-8"
+        });
     });
 }
 

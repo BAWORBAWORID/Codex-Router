@@ -23,6 +23,27 @@ export const OAuthCallbackBodySchema = z.object({
 export type OAuthCallbackBody = z.infer<typeof OAuthCallbackBodySchema>;
 
 export const TokenImportBodySchema = z
+    .preprocess((val) => {
+        if (val && typeof val === "object") {
+            const v = val as Record<string, unknown>;
+            const token =
+                typeof v.access_token === "string" && v.access_token.length > 0
+                    ? v.access_token
+                    : typeof v.accessToken === "string" && v.accessToken.length > 0
+                      ? v.accessToken
+                      : typeof v.token === "string" && v.token.length > 0
+                        ? v.token
+                        : v.access_token;
+            const refresh =
+                typeof v.refresh_token === "string"
+                    ? v.refresh_token
+                    : typeof v.refreshToken === "string"
+                      ? v.refreshToken
+                      : v.refresh_token;
+            return { ...v, access_token: token, refresh_token: refresh };
+        }
+        return val;
+    }, z
     .object({
         access_token: z
             .string({ required_error: "Field 'access_token' is required" })
@@ -31,7 +52,7 @@ export const TokenImportBodySchema = z
         base_url: z.string().url().optional(),
         name: z.string().optional()
     })
-    .passthrough();
+    .passthrough());
 
 export type TokenImportBody = z.infer<typeof TokenImportBodySchema>;
 

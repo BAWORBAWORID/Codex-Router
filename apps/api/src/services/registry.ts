@@ -8,6 +8,7 @@ import {
     DEFAULT_PROVIDERS,
     DEEPAI_BASE_URL,
     FREEBUFF_BASE_URL,
+    FREEPI_BASE_URL,
     GOROUTER_BASE_URL,
     isProviderBaseId,
     KILOCODE_BASE_URL,
@@ -32,6 +33,7 @@ import {
     CommandCodeExecutor,
     DeepSeekScraperExecutor,
     FreebuffExecutor,
+    FreePiExecutor,
     GoRouterExecutor,
     KiroExecutor,
     KiloCodeExecutor,
@@ -262,6 +264,22 @@ export function loadSavedProvidersFromDB(): void {
                     })
                 );
                 break;
+            case isProviderBaseId(p.id, "freepi") || providerType === "freepi":
+                registry.registerProvider(
+                    new FreePiExecutor({
+                        id: p.id || p.providerId,
+                        name: p.name,
+                        baseUrl: baseUrl || FREEPI_BASE_URL,
+                        apiKey: p.apiKey,
+                        accessToken: p.accessToken,
+                        sessionId:
+                            typeof p.providerSpecificData?.freepiSessionId === "string"
+                                ? p.providerSpecificData.freepiSessionId
+                                : undefined
+                    })
+                );
+                break;
+
             case isProviderBaseId(p.id, "seekai"):
                 registry.registerProvider(
                     new SeekAIExecutor({

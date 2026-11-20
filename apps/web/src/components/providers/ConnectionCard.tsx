@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, Check, Copy, KeyRound, Plus, RefreshCw, ShieldAlert, ShieldCheck, ShieldX, Trash2 } from "lucide-react";
 import type { ProviderConfig } from "@codex/types";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -73,7 +73,50 @@ export function ConnectionCard({
         }
     };
 
-    const activeCount = connections.filter((c) => c.enabled).length;
+    const getStatusInfo = (c: ProviderConfig) => {
+        if (!c.enabled) {
+            return {
+                status: "disabled",
+                label: "Disabled",
+                icon: "disabled",
+                className: "bg-secondary text-muted-foreground border border-border/60",
+                dotColor: "bg-muted-foreground"
+            };
+        }
+        const accStatus = c.providerSpecificData?.accountStatus;
+        if (accStatus === "suspended") {
+            return {
+                status: "suspended",
+                label: "Suspended",
+                reason: c.providerSpecificData?.accountStatusReason || "Terms of Service violation",
+                icon: "suspended",
+                className: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30",
+                dotColor: "bg-rose-500"
+            };
+        }
+        if (accStatus === "verify_required") {
+            return {
+                status: "verify_required",
+                label: "REQUIRED VERIFY",
+                reason: c.providerSpecificData?.accountStatusReason || "Verify your account to continue",
+                icon: "verify_required",
+                className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30",
+                dotColor: "bg-amber-500"
+            };
+        }
+        return {
+            status: "active",
+            label: "Active",
+            icon: "active",
+            className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30",
+            dotColor: "bg-emerald-500 animate-pulse"
+        };
+    };
+
+    const healthyCount = connections.filter((c) => {
+        const s = getStatusInfo(c);
+        return s.status === "active";
+    }).length;
 
     return (
         <TooltipProvider>
@@ -91,13 +134,13 @@ export function ConnectionCard({
                             <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border border-border/60 bg-secondary/50 text-muted-foreground">
                                 <span
                                     className={`size-1.5 rounded-full ${
-                                        activeCount > 0
+                                        healthyCount > 0
                                             ? "bg-emerald-500 animate-pulse"
                                             : "bg-muted-foreground"
                                     }`}
                                 />
                                 <span>
-                                    {activeCount}/{connections.length} Active
+                                    {healthyCount}/{connections.length} Active
                                 </span>
                             </span>
                         </div>
@@ -195,6 +238,8 @@ export function ConnectionCard({
                                   ? `${connection.accessToken.slice(0, 4)}••••`
                                   : null;
 
+                            const statusInfo = getStatusInfo(connection);
+
                             return (
                                 <div
                                     key={connection.id}
@@ -202,7 +247,13 @@ export function ConnectionCard({
                                 >
                                     <div className="flex items-center gap-3 min-w-0 flex-1">
                                         <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background/80 text-muted-foreground group-hover:text-foreground group-hover:border-border transition-colors">
-                                            <ShieldCheck className="size-4 text-emerald-500" />
+                                            {statusInfo.status === "suspended" ? (
+                                                <ShieldX className="size-4 text-rose-500" />
+                                            ) : statusInfo.status === "verify_required" ? (
+                                                <ShieldAlert className="size-4 text-amber-500" />
+                                            ) : (
+                                                <ShieldCheck className="size-4 text-emerald-500" />
+                                            )}
                                         </div>
 
                                         <div className="flex flex-col gap-1 min-w-0 flex-1">
@@ -212,21 +263,14 @@ export function ConnectionCard({
                                                 </span>
 
                                                 <span
-                                                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${
-                                                        connection.enabled
-                                                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                                                            : "bg-secondary text-muted-foreground border border-border/60"
-                                                    }`}
+                                                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${statusInfo.className}`}
+                                                    title={statusInfo.reason}
                                                 >
                                                     <span
-                                                        className={`size-1 rounded-full ${
-                                                            connection.enabled
-                                                                ? "bg-emerald-500 animate-pulse"
-                                                                : "bg-muted-foreground"
-                                                        }`}
+                                                        className={`size-1 rounded-full ${statusInfo.dotColor}`}
                                                     />
                                                     <span>
-                                                        {connection.enabled ? "Active" : "Disabled"}
+                                                        {statusInfo.label}
                                                     </span>
                                                 </span>
 

@@ -8,7 +8,7 @@
 
 ## 1. Overview & Goals
 
-Allow SRouter administrators to monetize and allocate prepaid spending balances (Credits in USD) to virtual API keys (`sr-live-*`). 
+Allow SRouter administrators to monetize and allocate prepaid spending balances (Credits in USD) to virtual API keys (`zyv-live-*`). 
 
 ### Key Capabilities
 1. **Prepaid Credit Limit & Tracking**: Virtual keys can be configured with an optional credit limit in USD (e.g. `$5.00`, `$10.00`) or left as Unlimited.

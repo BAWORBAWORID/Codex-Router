@@ -22,9 +22,9 @@ const STATIC_DEFAULT_PROVIDERS: ProviderDefinition[] = KNOWN_PROVIDERS.map((kp) 
     requires_oauth: kp.requires_oauth,
     supports_custom_url: kp.supports_custom_url ?? true,
     status: {
-        state: !kp.requires_api_key && !kp.requires_oauth ? "connected" : "no_connections",
+        state: "no_connections",
         message: kp.status_message,
-        connectedCount: !kp.requires_api_key && !kp.requires_oauth ? 1 : 0
+        connectedCount: 0
     },
     models: [],
     connections: []
@@ -87,7 +87,8 @@ export function useCatalog() {
             oauth: allProviders.filter((p) => p.category === "oauth"),
             api_key: allProviders.filter((p) => p.category === "api_key"),
             custom_provider: allProviders.filter((p) => p.category === "custom_provider"),
-            free_tier: allProviders.filter((p) => p.category === "free_tier")
+            free_tier: allProviders.filter((p) => p.category === "free_tier"),
+            self_hosted: allProviders.filter((p) => p.category === "self_hosted")
         };
         return {
             total: allProviders.length,

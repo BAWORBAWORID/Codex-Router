@@ -77,7 +77,7 @@ ZyvorAI includes a **DeepSeek scraper gateway** that accesses `chat.deepseek.com
 ```bash
 curl -N http://localhost:3000/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sr-live-your_key" \
+  -H "Authorization: Bearer zyv-live-your_key" \
   -d '{
     "model": "ds/deepseek-chat",
     "messages": [{"role": "user", "content": "Hello!"}],
@@ -164,7 +164,7 @@ curl -N http://localhost:3000/v1/chat/completions \
 | Tool | Setting | Value |
 |------|---------|-------|
 | Any IDE | Base URL | `http://localhost:4000/v1` |
-| Any IDE | API Key | `sr-live-your_key` |
+| Any IDE | API Key | `zyv-live-your_key` |
 | Any IDE | Model | `ds/deepseek-chat` |
 
 ---
@@ -178,7 +178,7 @@ curl -N http://localhost:3000/v1/chat/completions \
 ```python
 from openai import OpenAI
 
-client = OpenAI(base_url="http://localhost:4000/v1", api_key="sr-live-your_key")
+client = OpenAI(base_url="http://localhost:4000/v1", api_key="zyv-live-your_key")
 
 stream = client.chat.completions.create(
     model="ds/deepseek-chat",
@@ -195,7 +195,7 @@ for chunk in stream:
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ baseURL: "http://localhost:3000/v1", apiKey: "sr-live-your_key" });
+const client = new Anthropic({ baseURL: "http://localhost:3000/v1", apiKey: "zyv-live-your_key" });
 
 const message = await client.messages.create({
     model: "anthropic/claude-sonnet-4-20250514",
@@ -211,7 +211,7 @@ console.log(message.content[0].text);
 ```bash
 curl -N http://localhost:3000/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sr-live-your_key" \
+  -H "Authorization: Bearer zyv-live-your_key" \
   -d '{"model":"ds/deepseek-chat","messages":[{"role":"user","content":"Hi"}],"stream":true}'
 ```
 

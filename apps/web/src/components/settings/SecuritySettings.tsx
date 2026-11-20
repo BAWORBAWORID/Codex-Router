@@ -48,7 +48,7 @@ export function SecuritySettings({
   -H "Content-Type: application/json" \\
 ${
     requireApiKey
-        ? '  -H "Authorization: Bearer sr-live-your_virtual_key" \\\n'
+        ? '  -H "Authorization: Bearer zyv-live-your_virtual_key" \\\n'
         : '  # -H "Authorization: Bearer <optional_key>" \\\n'
 }  -d '{
     "model": "antigravity/gemini-2.5-flash",
@@ -63,7 +63,7 @@ ${
 
 const client = new OpenAI({
   baseURL: "${apiBase}",
-  apiKey: "${requireApiKey ? "sr-live-your_virtual_key" : "optional_or_any_string"}",
+  apiKey: "${requireApiKey ? "zyv-live-your_virtual_key" : "optional_or_any_string"}",
 });
 
 async function main() {
@@ -82,7 +82,7 @@ main();`;
 
 client = OpenAI(
     base_url="${apiBase}",
-    api_key="${requireApiKey ? "sr-live-your_virtual_key" : "optional_or_any_string"}"
+    api_key="${requireApiKey ? "zyv-live-your_virtual_key" : "optional_or_any_string"}"
 )
 
 response = client.chat.completions.create(

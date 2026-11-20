@@ -13,6 +13,7 @@ import {
     CODEX_OAUTH_REDIRECT_URI,
     COMMANDCODE_BASE_URL,
     FREEBUFF_BASE_URL,
+    FREEPI_BASE_URL,
     GOROUTER_BASE_URL,
     OPENROUTER_BASE_URL,
     SEEKAI_BASE_URL,
@@ -29,6 +30,7 @@ import {
     CodexExecutor,
     CommandCodeExecutor,
     FreebuffExecutor,
+    FreePiExecutor,
     GoRouterExecutor,
     OpenRouterExecutor,
     QoderExecutor,
@@ -43,6 +45,7 @@ import {
     CodeBuddyCNOAuth,
     CodeBuddyOAuth,
     FreebuffOAuth,
+    FreePiOAuth,
     OpenAICodexOAuth,
     QoderOAuth
 } from "@codex/providers";
@@ -91,8 +94,9 @@ const deepai: AuthProviderHandler = {
         accountId: tokens.accountId
     }),
     mapImportTokens: (params) => ({
-        accessToken: params.accessToken,
-        refreshToken: params.refreshToken
+        accessToken: params.accessToken || params.apiKey || (params as any).token,
+        refreshToken: params.refreshToken,
+        baseUrl: params.baseUrl
     }),
     buildExecutor: ({ id, name, accessToken }) =>
         new DeepAIExecutor({ id, name, apiKey: accessToken, baseUrl: "http://127.0.0.1:8787/v1" })
@@ -179,8 +183,9 @@ const claude: AuthProviderHandler = {
         expiresIn: tokens.expiresIn
     }),
     mapImportTokens: (params) => ({
-        accessToken: params.accessToken,
-        refreshToken: params.refreshToken
+        accessToken: params.accessToken || params.apiKey || (params as any).token,
+        refreshToken: params.refreshToken,
+        baseUrl: params.baseUrl
     }),
     buildExecutor: ({ id, name, accessToken, refreshToken, organizationId }) =>
         new AnthropicExecutor({ id, name, accessToken, refreshToken, organizationId })
@@ -416,6 +421,37 @@ const freebuff: AuthProviderHandler = {
         new FreebuffExecutor({ id, name, accessToken, baseUrl: FREEBUFF_BASE_URL })
 };
 
+
+const freepi: AuthProviderHandler = {
+    providerId: "freepi",
+    displayName: "FreePi",
+    category: "oauth",
+    protocol: "openai",
+    idPrefix: "freepi",
+    baseUrl: () => FREEPI_BASE_URL,
+    oauthSuccessMessage: "Login FreePi Berhasil!",
+    tokenImportMessage: "FreePi token saved directly to SQLite database!",
+    mapOAuthTokens: (tokens) => ({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        accountId: tokens.accountId,
+        expiresIn: tokens.expiresIn
+    }),
+    mapImportTokens: (params) => ({
+        accessToken: params.accessToken || params.apiKey || (params as any).token,
+        refreshToken: params.refreshToken,
+        baseUrl: params.baseUrl
+    }),
+    buildExecutor: ({ id, name, accessToken, apiKey, baseUrl }) =>
+        new FreePiExecutor({
+            id,
+            name,
+            accessToken: accessToken || apiKey,
+            apiKey,
+            baseUrl: baseUrl || FREEPI_BASE_URL
+        })
+};
+
 export const AuthHandlers = {
     OpenAI: openaiCodex,
     Antigravity: antigravity,
@@ -423,6 +459,8 @@ export const AuthHandlers = {
     deepai: deepai,
     Freebuff: freebuff,
     freebuff: freebuff,
+    FreePi: freepi,
+    freepi: freepi,
     antigravity: antigravity,
     CommandCode: commandCode,
     Anthropic: anthropic,
@@ -455,5 +493,6 @@ export const authProviderHandlers: Record<string, AuthProviderHandler> = {
     codebuddy: AuthHandlers.CodeBuddy,
     "codebuddy-cn": AuthHandlers.CodeBuddyCN,
     freebuff: AuthHandlers.Freebuff,
+    freepi: AuthHandlers.FreePi,
     bai: AuthHandlers.BAI
 };

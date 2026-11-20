@@ -17,7 +17,7 @@ afterEach(() => {
     }
 });
 
-test("createAPIKeyDB stores a new virtual key with prefix sr-live-", () => {
+test("createAPIKeyDB stores a new virtual key with prefix zyv-live-", () => {
     const created = createAPIKeyDB({
         name: "Test Client Key",
         rateLimit: 60,
@@ -27,7 +27,7 @@ test("createAPIKeyDB stores a new virtual key with prefix sr-live-", () => {
     createdIds.push(created.id);
 
     assert.ok(created.id.startsWith("key_"));
-    assert.ok(created.key.startsWith("sr-live-"));
+    assert.ok(created.key.startsWith("zyv-live-"));
     assert.equal(created.name, "Test Client Key");
     assert.equal(created.enabled, true);
     assert.equal(created.rate_limit, 60);

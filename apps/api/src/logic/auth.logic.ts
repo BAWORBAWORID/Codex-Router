@@ -4,7 +4,8 @@ import {
     CODEBUDDY_CN_BASE_URL,
     CODEBUDDY_CN_DOMAIN,
     CODEBUDDY_CN_USER_AGENT,
-    FREEBUFF_BASE_URL
+    FREEBUFF_BASE_URL,
+    FREEPI_BASE_URL
 } from "@codex/constants";
 import {
     cleanupExpiredOAuthSessionsDB,
@@ -13,8 +14,8 @@ import {
     saveOAuthSessionDB,
     upsertProviderDB
 } from "@codex/db";
-import { CodeBuddyCNOAuth, CodeBuddyOAuth, FreebuffOAuth, generatePKCE, QoderOAuth } from "@codex/providers";
-import { CodeBuddyExecutor, FreebuffExecutor, QoderExecutor } from "@codex/executors";
+import { CodeBuddyCNOAuth, CodeBuddyOAuth, FreebuffOAuth, FreePiOAuth, generatePKCE, QoderOAuth } from "@codex/providers";
+import { CodeBuddyExecutor, FreebuffExecutor, FreePiExecutor, QoderExecutor } from "@codex/executors";
 import type { ProviderConfig } from "@codex/types";
 import { registry } from "@/services/registry.js";
 import {
@@ -200,13 +201,15 @@ function ProcessSingleTokenImport(
     };
     const baseUrl = params.base_url || params.baseUrl || handler.baseUrl?.();
 
+    const resolvedBaseUrl = mapping.baseUrl ?? baseUrl;
     const providerConfig = upsertProviderDB({
         id: accountId,
         providerId: handler.providerId,
         name: providerName,
         category: handler.category,
         protocol: handler.protocol,
-        baseUrl: mapping.baseUrl ?? baseUrl,
+        baseUrl: resolvedBaseUrl,
+        base_url: resolvedBaseUrl,
         apiKey: mapping.apiKey,
         accessToken: mapping.accessToken,
         refreshToken: mapping.refreshToken,
@@ -582,6 +585,193 @@ export async function PollFreebuffDeviceToken(state: string): Promise<AuthPollRe
     };
 }
 
+
+async function FinalizeFreePiSession(sessionId: string, token: string): Promise<ProviderConfig | null> {
+    // Ensure session still exists to avoid duplicate finalization
+    const session = getOAuthSessionDB(sessionId);
+    if (!session) return null;
+    deleteOAuthSessionDB(sessionId);
+
+    const freepiOAuth = new FreePiOAuth();
+    const me = await freepiOAuth.getMe(token).catch(() => ({} as { id?: string; email?: string; handle?: string }));
+
+    const timestamp = Date.now();
+    const accountId = `freepi_${timestamp}`;
+    const label = me.handle || me.email || me.id;
+    const accountName = label ? `FreePi (${label})` : `FreePi (Account #${timestamp.toString().slice(-4)})`;
+    const chatSessionId = nodeCrypto.randomUUID();
+
+    const providerConfig = upsertProviderDB({
+        id: accountId,
+        providerId: "freepi",
+        name: accountName,
+        category: "oauth",
+        protocol: "openai",
+        base_url: FREEPI_BASE_URL,
+        accessToken: token,
+        accountId: me.id,
+        lastRefreshedAt: timestamp,
+        providerSpecificData: {
+            authMethod: "github_device",
+            freepiSessionId: chatSessionId,
+            userId: me.id || "",
+            email: me.email || "",
+            handle: me.handle || ""
+        },
+        enabled: true,
+        createdAt: timestamp
+    });
+
+    const providerInstance = new FreePiExecutor({
+        id: accountId,
+        name: accountName,
+        baseUrl: FREEPI_BASE_URL,
+        accessToken: token,
+        sessionId: chatSessionId
+    });
+    registry.registerProvider(providerInstance);
+
+    return providerConfig;
+}
+
+function StartFreePiBackgroundPoll(sessionId: string, intervalSec: number, expiresInSec: number): void {
+    const freepiOAuth = new FreePiOAuth();
+    const startedAt = Date.now();
+    const expiresMs = Math.max(30, expiresInSec || 900) * 1000;
+
+    const tick = async () => {
+        try {
+            // Stop if session expired/consumed or overall timeout reached
+            const session = getOAuthSessionDB(sessionId);
+            if (!session) return;
+            if (Date.now() - startedAt > expiresMs) {
+                deleteOAuthSessionDB(sessionId);
+                return;
+            }
+
+            const poll = await freepiOAuth.pollToken(sessionId);
+            if (poll.status === "ok" && poll.token) {
+                await FinalizeFreePiSession(sessionId, poll.token);
+                return;
+            }
+            if (poll.status === "error" && poll.error === "consent_required") {
+                // Try to resubmit consent and keep polling
+                try { await freepiOAuth.submitConsent(sessionId); } catch {}
+            }
+
+            const nextMs = Math.max(3, poll.retryAfter ?? intervalSec ?? 5) * 1000;
+            setTimeout(() => { void tick(); }, nextMs);
+        } catch {
+            const session = getOAuthSessionDB(sessionId);
+            if (!session) return;
+            if (Date.now() - startedAt > expiresMs) {
+                deleteOAuthSessionDB(sessionId);
+                return;
+            }
+            setTimeout(() => { void tick(); }, Math.max(5, intervalSec || 5) * 1000);
+        }
+    };
+
+    setTimeout(() => { void tick(); }, Math.max(1, intervalSec || 5) * 1000);
+}
+
+export async function InitiateFreePiOAuth(): Promise<{ authorizeUrl: string; state: string; userCode?: string; verificationUriComplete?: string }> {
+    CleanupExpiredSessions();
+    const freepiOAuth = new FreePiOAuth();
+    const result = await freepiOAuth.initiateDeviceFlow();
+
+    // Submit consent up-front (required by free-pi auth flow before token issuance)
+    try {
+        await freepiOAuth.submitConsent(result.sessionId);
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        throw new Error(`Failed to submit FreePi consent: ${msg}`);
+    }
+
+    saveOAuthSessionDB({
+        state: result.sessionId,
+        codeVerifier: JSON.stringify({
+            interval: result.interval,
+            expiresIn: result.expiresIn ?? 900,
+            userCode: result.userCode
+        }),
+        clientId: "",
+        redirectUri: "",
+        createdAt: Date.now()
+    });
+
+    // Auto-poll in background so credentials are saved even if frontend stops polling
+    StartFreePiBackgroundPoll(result.sessionId, result.interval, result.expiresIn ?? 900);
+
+    return {
+        authorizeUrl: result.verificationUriComplete || result.verificationUri,
+        state: result.sessionId,
+        userCode: result.userCode,
+        verificationUriComplete: result.verificationUriComplete
+    };
+}
+
+export async function PollFreePiDeviceToken(state: string): Promise<AuthPollResult> {
+    if (!state) {
+        return { status: AuthPollStatus.PENDING, error: "Missing state parameter" };
+    }
+
+    const session = getOAuthSessionDB(state);
+    if (!session) {
+        // Session may have been finalized by background poller; report success if a recent connection exists
+        const recent = getAllProvidersDB()
+            .filter((p) => p.providerId === "freepi" && !isSeedProvider(p) && p.enabled)
+            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+        if (recent) {
+            return { status: AuthPollStatus.OK, provider: recent };
+        }
+        return { status: AuthPollStatus.PENDING, error: "Session expired or not found" };
+    }
+
+    const freepiOAuth = new FreePiOAuth();
+    let poll: Awaited<ReturnType<typeof freepiOAuth.pollToken>>;
+    try {
+        poll = await freepiOAuth.pollToken(state);
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { status: AuthPollStatus.PENDING, error: msg };
+    }
+
+    if (poll.status === "error") {
+        if (poll.error === "consent_required") {
+            try { await freepiOAuth.submitConsent(state); } catch {}
+        }
+        return { status: AuthPollStatus.PENDING, error: poll.error || "Authorization failed" };
+    }
+
+    if (poll.status !== "ok" || !poll.token) {
+        // If user completed auth on another device-code session, a new connection may exist
+        try {
+            const recent = getAllProvidersDB()
+                .filter((p) => p.providerId === "freepi" && !isSeedProvider(p) && p.enabled && (p.createdAt || 0) >= (session.createdAt || 0))
+                .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+            if (recent) {
+                return { status: AuthPollStatus.OK, provider: recent };
+            }
+        } catch {}
+        return { status: AuthPollStatus.PENDING, error: poll.error };
+    }
+
+    const providerConfig = await FinalizeFreePiSession(state, poll.token);
+    if (providerConfig) {
+        return { status: AuthPollStatus.OK, provider: providerConfig };
+    }
+
+    const recent = getAllProvidersDB()
+        .filter((p) => p.providerId === "freepi" && !isSeedProvider(p) && p.enabled)
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+    if (recent) {
+        return { status: AuthPollStatus.OK, provider: recent };
+    }
+    return { status: AuthPollStatus.PENDING };
+}
+
+
 interface AuthProviderEntry {
     initiate?: (params: OAuthLoginParams) => OAuthLoginResult;
     callback?: (code: string, state: string) => Promise<ProviderConfig>;
@@ -640,6 +830,10 @@ RegisterEntry("freebuff", {
     importToken: (params) => ProcessTokenImportFor(AuthHandlers.Freebuff, params)
 });
 
+RegisterEntry("freepi", {
+    importToken: (params) => ProcessTokenImportFor(AuthHandlers.FreePi, params)
+});
+
 for (const [key, handler] of [
     ["commandcode", AuthHandlers.CommandCode],
     ["anthropic", AuthHandlers.Anthropic],
@@ -694,6 +888,8 @@ export const AuthLogic = {
     pollQoderDeviceToken: PollQoderDeviceToken,
     initiateFreebuffOAuth: InitiateFreebuffOAuth,
     pollFreebuffDeviceToken: PollFreebuffDeviceToken,
+    initiateFreePiOAuth: InitiateFreePiOAuth,
+    pollFreePiDeviceToken: PollFreePiDeviceToken,
 
     InitiateCodeBuddyOAuth,
     InitiateCodeBuddyCNOAuth,

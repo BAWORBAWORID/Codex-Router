@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { CODEBUDDY_CN_DOMAIN, CODEBUDDY_CN_USER_AGENT, isProviderBaseId } from "@codex/constants";
 import type {
     LiveModelQuotaItem,
@@ -80,7 +81,8 @@ export async function fetchAntigravityLiveQuota(
     providerId: string,
     accountName: string,
     accessToken: string,
-    enabled = true
+    enabled = true,
+    isPrimary = false
 ): Promise<ProviderQuotaAccount> {
     if (!accessToken || !(accessToken.startsWith("ya29.") || accessToken.length > 20)) {
         throw new Error("Antigravity quota requires a valid access token");
@@ -130,6 +132,16 @@ export async function fetchAntigravityLiveQuota(
         };
     });
 
+    const UsageRows = getProviderModelUsageDB(providerId, isPrimary);
+    const UsageMetrics: ProviderUsageMetric[] = UsageRows.map((row) => ({
+        model: row.model,
+        totalRequests: row.totalRequests,
+        totalTokens: row.totalTokens,
+        promptTokens: row.promptTokens,
+        completionTokens: row.completionTokens,
+        lastUsedAt: row.lastUsedAt ? new Date(row.lastUsedAt).toISOString() : null
+    }));
+
     return {
         id: providerId,
         provider: "Antigravity",
@@ -138,7 +150,8 @@ export async function fetchAntigravityLiveQuota(
         enabled,
         quotaType: "live_provider_quota",
         totalQuotas: Quotas.length,
-        quotas: Quotas
+        quotas: Quotas,
+        usageMetrics: UsageMetrics
     };
 }
 
@@ -372,14 +385,218 @@ export async function fetchFreebuffLiveQuota(
     };
 }
 
-export async function getProviderQuotaAccount(p: {
-    id: string;
-    providerId: string;
-    name: string;
-    apiKey?: string;
-    accessToken?: string;
-    enabled: boolean;
-}): Promise<ProviderQuotaAccount> {
+interface FreePiMeResponse {
+    user_id?: string;
+    handle?: string;
+    tier?: string;
+    lane?: string;
+    remaining_usd_today?: number;
+    cap_usd_today?: number;
+    credit_usd?: number;
+    allowance_credits?: number;
+    remaining_credits_today?: number;
+    refill_at?: string;
+    bonus_credits?: number;
+    bonus_wallet_credits?: number;
+    premium_credits?: number;
+    premium_bought_credits?: number;
+    premium_gifted_credits?: number;
+}
+
+export async function fetchDeepAILiveQuota(
+    providerId: string,
+    accountName: string,
+    token: string,
+    enabled = true,
+    isPrimary = false
+): Promise<ProviderQuotaAccount> {
+    if (!token) {
+        throw new Error("DeepAI quota requires a valid API key or session token");
+    }
+
+    const machineId = createHash("sha256").update("my-custom-deepai-machine-v1").digest("hex");
+    const headers = {
+        "User-Agent": "deepai-gateway/1.0",
+        "X-DeepAI-Code-Theos": "4",
+        "X-DeepAI-Code-Machine": machineId,
+        "Api-Key": token
+    };
+
+    const res = await fetch("https://api.deepai.org/deepai_code/theos", { headers, signal: AbortSignal.timeout(8000) });
+    if (!res.ok) {
+        throw new Error(`DeepAI quota fetch failed: HTTP ${res.status}`);
+    }
+
+    const data = (await res.json()) as {
+        enabled?: boolean;
+        balance?: string;
+        granted?: string;
+        refresh_at?: string;
+    };
+
+    const balance = parseFloat(data.balance || "0");
+    const granted = parseFloat(data.granted || "0");
+    const total = granted > 0 ? granted : balance > 0 ? balance : 50;
+    const remaining = Math.max(0, balance);
+    const used = Math.max(0, total - remaining);
+    const percentageVal = Math.min(100, Math.max(0, Math.round((remaining / total) * 100)));
+
+    const quotas: LiveModelQuotaItem[] = [
+        {
+            name: "Credits Balance (Theos)",
+            used: Math.round(used * 100) / 100,
+            limit: Math.round(total * 100) / 100,
+            percentage: `${percentageVal}%`,
+            percentageValue: percentageVal,
+            resetIn: formatResetIn(data.refresh_at),
+            resetTime: data.refresh_at,
+            status: balance <= 0 ? "exhausted" : percentageVal <= 20 ? "warning" : "ok"
+        }
+    ];
+
+    const UsageRows = getProviderModelUsageDB(providerId, isPrimary);
+    const UsageMetrics: ProviderUsageMetric[] = UsageRows.map((row) => ({
+        model: row.model,
+        totalRequests: row.totalRequests,
+        totalTokens: row.totalTokens,
+        promptTokens: row.promptTokens,
+        completionTokens: row.completionTokens,
+        lastUsedAt: row.lastUsedAt ? new Date(row.lastUsedAt).toISOString() : null
+    }));
+
+    return {
+        id: providerId,
+        provider: "DeepAI",
+        providerId: "deepai",
+        account: accountName,
+        enabled,
+        quotaType: "live_provider_quota",
+        totalQuotas: quotas.length,
+        quotas,
+        usageMetrics: UsageMetrics
+    };
+}
+
+export async function fetchFreePiLiveQuota(
+    providerId: string,
+    accountName: string,
+    token: string,
+    enabled = true
+): Promise<ProviderQuotaAccount> {
+    if (!token) {
+        throw new Error("FreePi quota requires a valid access token");
+    }
+
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json"
+    };
+
+    const meRes = await fetch("https://api.freepi.ai/me", { headers });
+    if (!meRes.ok) {
+        throw new Error(`FreePi quota fetch failed: HTTP ${meRes.status}`);
+    }
+
+    const me = (await meRes.json()) as FreePiMeResponse;
+
+    const quotas: LiveModelQuotaItem[] = [];
+    const refillAt = typeof me.refill_at === "string" ? me.refill_at : undefined;
+
+    const addQuota = (
+        name: string,
+        remaining: number,
+        limit: number,
+        resetTime?: string,
+        precision = 2
+    ) => {
+        if (!Number.isFinite(limit) || limit <= 0) return;
+        const remClamped = Math.max(0, Math.min(remaining, limit));
+        const usedRaw = Math.max(0, limit - remaining);
+        const used = Math.round(usedRaw * 10 ** precision) / 10 ** precision;
+        const lim = Math.round(limit * 10 ** precision) / 10 ** precision;
+        const percentageValue = Math.max(0, Math.min(100, Math.round((remClamped / limit) * 100)));
+        const status: LiveModelQuotaItem["status"] =
+            remClamped <= 0 ? "exhausted" : percentageValue <= 20 ? "warning" : "ok";
+        quotas.push({
+            name,
+            used,
+            limit: lim,
+            percentage: `${percentageValue}%`,
+            percentageValue,
+            resetIn: formatResetIn(resetTime),
+            resetTime,
+            status
+        });
+    };
+
+    if (typeof me.allowance_credits === "number" && me.allowance_credits > 0) {
+        addQuota(
+            "Daily Allowance Credits",
+            typeof me.remaining_credits_today === "number" ? me.remaining_credits_today : 0,
+            me.allowance_credits,
+            refillAt,
+            0
+        );
+    }
+
+    if (typeof me.cap_usd_today === "number" && me.cap_usd_today > 0) {
+        addQuota(
+            "Daily USD Cap",
+            typeof me.remaining_usd_today === "number" ? me.remaining_usd_today : 0,
+            me.cap_usd_today,
+            refillAt,
+            5
+        );
+    }
+
+    if (typeof me.bonus_credits === "number" && me.bonus_credits > 0) {
+        addQuota(
+            "Bonus Credits Wallet",
+            typeof me.bonus_wallet_credits === "number" ? me.bonus_wallet_credits : 0,
+            me.bonus_credits,
+            undefined,
+            0
+        );
+    }
+
+    if (typeof me.premium_credits === "number" && me.premium_credits > 0) {
+        addQuota(
+            "Premium Credits",
+            typeof me.premium_credits === "number" ? me.premium_credits : 0,
+            me.premium_credits,
+            undefined,
+            0
+        );
+    }
+
+    const tier = typeof me.tier === "string" && me.tier ? ` (${me.tier})` : "";
+    const lane = typeof me.lane === "string" && me.lane ? ` • ${me.lane}` : "";
+    const handle = typeof me.handle === "string" && me.handle ? me.handle : "";
+
+    return {
+        id: providerId,
+        provider: `FreePi${tier}${lane}`,
+        providerId: "freepi",
+        account: accountName || (handle ? `FreePi (${handle})` : "FreePi Account"),
+        enabled,
+        quotaType: "live_provider_quota",
+        totalQuotas: quotas.length,
+        quotas
+    };
+}
+
+export async function getProviderQuotaAccount(
+    p: {
+        id: string;
+        providerId: string;
+        name: string;
+        apiKey?: string;
+        accessToken?: string;
+        enabled: boolean;
+    },
+    isPrimary = false
+): Promise<ProviderQuotaAccount> {
     const IsAntigravity =
         isProviderBaseId(p.providerId, "antigravity") || isProviderBaseId(p.id, "antigravity");
     const IsOpenAICodex =
@@ -394,11 +611,42 @@ export async function getProviderQuotaAccount(p: {
         (isProviderBaseId(p.providerId, "codebuddy") || isProviderBaseId(p.id, "codebuddy"));
     const IsFreebuff =
         isProviderBaseId(p.providerId, "freebuff") || isProviderBaseId(p.id, "freebuff");
+    const IsFreePi =
+        isProviderBaseId(p.providerId, "freepi") || isProviderBaseId(p.id, "freepi");
+    const IsDeepAI =
+        isProviderBaseId(p.providerId, "deepai") || isProviderBaseId(p.id, "deepai");
 
     const Token = p.accessToken || p.apiKey || "";
 
     if (IsCodeBuddy) {
         throw new Error("CodeBuddy (international) does not expose a live quota endpoint");
+    }
+
+    if (IsDeepAI && Token) {
+        try {
+            return await fetchDeepAILiveQuota(
+                p.id,
+                p.name || "DeepAI Account",
+                Token,
+                p.enabled,
+                isPrimary
+            );
+        } catch {
+            // Fall back to local usage_logged if upstream fetch fails
+        }
+    }
+
+    if (IsFreePi && Token) {
+        try {
+            return await fetchFreePiLiveQuota(
+                p.id,
+                p.name || "FreePi Account",
+                Token,
+                p.enabled
+            );
+        } catch {
+            // Fall back to local usage_logged if upstream fetch fails
+        }
     }
 
     if (IsFreebuff && Token) {
@@ -428,7 +676,8 @@ export async function getProviderQuotaAccount(p: {
             p.id,
             p.name || "seaavey@gmail.com",
             Token,
-            p.enabled
+            p.enabled,
+            isPrimary
         );
     }
 
@@ -472,14 +721,23 @@ export async function getQuotaSummaryDB(): Promise<QuotaResponse> {
     }
 
     const ProviderAccounts: ProviderQuotaAccount[] = [];
+    const seenBaseProviders = new Set<string>();
     for (const p of DbProviders) {
         try {
+            if (p.providerSpecificData && (p.providerSpecificData as Record<string, unknown>).__seed__) continue;
             // Only include providers that have active connections
             const baseId = p.providerId || p.id;
             const connectedCount = connectedCountByProvider[baseId] ?? 0;
             if (connectedCount === 0) continue;
 
-            const Account = await getProviderQuotaAccount(p);
+            // Skip non-active accounts (e.g. suspended, verify_required)
+            const status = p.providerSpecificData?.accountStatus;
+            if (status === "suspended" || status === "verify_required") continue;
+
+            const isPrimary = !seenBaseProviders.has(baseId);
+            seenBaseProviders.add(baseId);
+
+            const Account = await getProviderQuotaAccount(p, isPrimary);
             ProviderAccounts.push(Account);
         } catch {
             // Skip providers whose quota cannot be fetched

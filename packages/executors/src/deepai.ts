@@ -1,6 +1,18 @@
 import { DEEPAI_BASE_URL, DEEPAI_MODELS } from "@codex/constants";
-import type { ModelObject } from "@codex/types";
+import type { ChatCompletionChunk, ChatCompletionRequest, ChatCompletionResponse, ModelObject } from "@codex/types";
 import { OpenAIExecutor, type OpenAIExecutorOptions } from "./openai.js";
+
+function resolveDeepAIMaxTokens(req: ChatCompletionRequest): ChatCompletionRequest {
+    const rawModel = req.model.includes("/") ? req.model.split("/")[1] ?? req.model : req.model;
+    const modelDef = DEEPAI_MODELS.find((m) => m.id.toLowerCase() === rawModel.toLowerCase());
+    const modelMax = modelDef?.maxTokens ?? 131072;
+
+    const currentMax = typeof req.max_tokens === "number" ? req.max_tokens : undefined;
+    if (currentMax === undefined || currentMax > modelMax) {
+        return { ...req, max_tokens: modelMax };
+    }
+    return req;
+}
 
 export interface DeepAIExecutorOptions extends OpenAIExecutorOptions {}
 
@@ -13,6 +25,16 @@ export class DeepAIExecutor extends OpenAIExecutor {
             apiKey: options.apiKey,
             accessToken: options.accessToken
         });
+    }
+
+    override async chatCompletion(req: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+        return super.chatCompletion(resolveDeepAIMaxTokens(req));
+    }
+
+    override async *chatCompletionStream(
+        req: ChatCompletionRequest
+    ): AsyncGenerator<ChatCompletionChunk, void, void> {
+        yield* super.chatCompletionStream(resolveDeepAIMaxTokens(req));
     }
 
     override async listModels(): Promise<ModelObject[]> {
